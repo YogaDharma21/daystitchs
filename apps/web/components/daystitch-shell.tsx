@@ -3,6 +3,7 @@
 import { ClerkLoaded, ClerkLoading, SignedIn, SignedOut } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@workspace/ui/components/button"
+import DaystitchTimeline from "@/components/timeline"
 
 function ShellLoading() {
   return (
@@ -42,12 +43,8 @@ function AppShell() {
         <h1 className="text-lg font-medium">DayStitch</h1>
         <UserButton />
       </header>
-      <main className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
-        <h2 className="text-base font-medium">No entries yet</h2>
-        <p className="text-muted-foreground max-w-sm text-sm">
-          Your timeline is empty. New entries will appear here once you add
-          them.
-        </p>
+      <main className="flex flex-1 flex-col">
+        <DaystitchTimeline />
       </main>
     </div>
   )
