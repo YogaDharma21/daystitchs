@@ -2,17 +2,26 @@
 
 import * as React from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover";
 import {
   daysOfWeek,
   fmtRange,
   isoDay,
+  jumpTarget,
+  jumpWindow,
+  miniGridCells,
   monthEndDay,
   monthIndex,
   monthStartDay,
   sortEntries,
   sundaysOfMonth,
+  titleForYm,
   weekLabel,
   type DayEntry,
   type EntryType,
@@ -295,6 +304,7 @@ function TimelineLoading() {
 
 function TimelineConnected() {
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
+  const todayIdx = React.useMemo(() => monthIndex(new Date()), []);
   const [{ start, end }, setWindow] = React.useState(() => {
     const cur = monthIndex(new Date());
     return { start: cur - 1, end: cur + 1 };
@@ -302,6 +312,12 @@ function TimelineConnected() {
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const [extending, setExtending] = React.useState<null | "top" | "bottom">(null);
   const [fabOpen, setFabOpen] = React.useState(false);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [pickerIdx, setPickerIdx] = React.useState(todayIdx);
+  const [title, setTitle] = React.useState(() => {
+    const now = new Date();
+    return titleForYm(`${now.getFullYear()}-${now.getMonth()}`);
+  });
   const [sheet, setSheet] = React.useState<{
     open: boolean;
     date: string;
@@ -311,6 +327,8 @@ function TimelineConnected() {
   const scrolledRef = React.useRef(false);
   const loadedRef = React.useRef(false);
   const anchorRef = React.useRef<{ id: string; top: number } | null>(null);
+  const pendingJump = React.useRef<string | null>(null);
+  const chipsRef = React.useRef<HTMLDivElement | null>(null);
 
   const rangeStart = monthStartDay(start);
   const rangeEnd = monthEndDay(end);
@@ -328,12 +346,67 @@ function TimelineConnected() {
     if (entries !== undefined) setExtending(null);
   }, [entries]);
 
+  const scrollToKey = React.useCallback((key: string) => {
+    const p = key.split("-");
+    const el =
+      document.getElementById(`d-${key}`) ??
+      document.getElementById(`m-${Number(p[0])}-${Number(p[1]) - 1}`);
+    el?.scrollIntoView({ block: "start" });
+    const holder = el?.closest?.("[data-ym]") ?? el;
+    const ym = holder?.getAttribute?.("data-ym");
+    if (ym) setTitle(titleForYm(ym));
+  }, []);
+
   React.useEffect(() => {
-    if (entries !== undefined && !scrolledRef.current) {
-      scrolledRef.current = true;
-      document.getElementById(`d-${todayKey}`)?.scrollIntoView({ block: "start" });
+    if (entries === undefined) return;
+    const key = pendingJump.current;
+    pendingJump.current = null;
+    if (key) {
+      scrollToKey(key);
+      return;
     }
-  }, [entries, todayKey]);
+    if (!scrolledRef.current) {
+      scrolledRef.current = true;
+      scrollToKey(todayKey);
+    }
+  }, [entries, start, end, expanded, todayKey, scrollToKey]);
+
+  const jumpToDate = React.useCallback(
+    (key: string) => {
+      const { idx, sunKey } = jumpTarget(key);
+      setWindow((w) => jumpWindow(w, idx));
+      setExpanded((prev) =>
+        prev[sunKey] ? prev : { ...prev, [sunKey]: true },
+      );
+      setPickerOpen(false);
+      pendingJump.current = key;
+    },
+    [],
+  );
+
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setPickerOpen(false);
+      setFabOpen(false);
+      setSheet((s) => (s.open ? { ...s, open: false } : s));
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+
+  React.useEffect(() => {
+    if (!pickerOpen) return;
+    const chips = chipsRef.current;
+    const on = chips?.querySelector(".chip-on");
+    if (chips && on) {
+      chips.scrollLeft =
+        (on as HTMLElement).offsetLeft -
+        chips.offsetLeft -
+        chips.clientWidth / 2 +
+        (on as HTMLElement).clientWidth / 2;
+    }
+  }, [pickerOpen, pickerIdx]);
 
   React.useEffect(() => {
     const a = anchorRef.current;
@@ -351,6 +424,11 @@ function TimelineConnected() {
       requestAnimationFrame(() => {
         ticking = false;
         if (!loadedRef.current) return;
+        const top = document
+          .elementFromPoint(window.innerWidth / 2, 80)
+          ?.closest?.("[data-ym]");
+        const ym = top?.getAttribute?.("data-ym");
+        if (ym) setTitle(titleForYm(ym));
         if (window.scrollY < 500) {
           const el = document
             .elementFromPoint(window.innerWidth / 2, 80)
@@ -403,7 +481,165 @@ function TimelineConnected() {
     setSheet({ open: true, date: entry.date, entry, preset: entry.type }),
   []);
 
-  if (entries === undefined) return <TimelineLoading />;
+  const pickerYear = Math.floor(pickerIdx / 12);
+  const pickerMonth = pickerIdx % 12;
+  const pickerCells = miniGridCells(pickerYear, pickerMonth, todayKey);
+  const chipRange: number[] = [];
+  for (let i = pickerIdx - 12; i <= pickerIdx + 12; i++) chipRange.push(i);
+  const wdNames = [0, 1, 2, 3, 4, 5, 6].map((i) =>
+    new Date(2026, 9, 5 + i).toLocaleDateString("en-US", {
+      weekday: "narrow",
+    }),
+  );
+
+  const onChipJump = (idx: number) => {
+    setPickerIdx(idx);
+    const y = Math.floor(idx / 12);
+    const m = idx % 12;
+    jumpToDate(`${y}-${String(m + 1).padStart(2, "0")}-01`);
+  };
+
+  const header = (
+    <div
+      data-testid="timeline-header"
+      className="bg-background/95 sticky top-0 z-20 border-b backdrop-blur"
+    >
+      <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-6 py-3">
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              data-testid="timeline-title"
+              aria-label="Pick a date"
+              aria-expanded={pickerOpen}
+              className="flex items-center gap-1.5 text-lg font-semibold tracking-tight"
+            >
+              <span data-testid="timeline-title-text">{title}</span>
+              <ChevronDown
+                aria-hidden="true"
+                className={`size-4 transition-transform ${pickerOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            data-testid="date-picker"
+            align="start"
+            className="w-72 p-3"
+          >
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                data-testid="picker-prev"
+                aria-label="Previous month"
+                onClick={() => setPickerIdx((i) => i - 1)}
+                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+              >
+                <ChevronLeft aria-hidden="true" className="size-4" />
+              </button>
+              <p data-testid="picker-label" className="text-sm font-semibold">
+                {titleForYm(`${pickerYear}-${pickerMonth}`)}
+              </p>
+              <button
+                type="button"
+                data-testid="picker-next"
+                aria-label="Next month"
+                onClick={() => setPickerIdx((i) => i + 1)}
+                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+              >
+                <ChevronRight aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+            <div
+              ref={chipsRef}
+              data-testid="picker-chips"
+              className="mt-2 flex items-center gap-1 overflow-x-auto pb-1"
+            >
+              {chipRange.map((idx) =>
+                idx % 12 === 0 ? (
+                  <span
+                    key={idx}
+                    className="text-muted-foreground flex-none px-1 text-[11px] font-bold"
+                  >
+                    {Math.floor(idx / 12)}
+                  </span>
+                ) : (
+                  <button
+                    key={idx}
+                    type="button"
+                    data-testid="picker-chip"
+                    data-idx={idx}
+                    aria-pressed={idx === pickerIdx}
+                    onClick={() => onChipJump(idx)}
+                    className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+                      idx === pickerIdx
+                        ? "chip-on bg-primary text-primary-foreground border-transparent"
+                        : "bg-secondary"
+                    }`}
+                  >
+                    {new Date(
+                      Math.floor(idx / 12),
+                      idx % 12,
+                      1,
+                    ).toLocaleDateString("en-US", { month: "short" })}
+                  </button>
+                ),
+              )}
+            </div>
+            <div
+              data-testid="picker-grid"
+              className="mt-1 grid grid-cols-7 gap-1 text-center"
+            >
+              {wdNames.map((w, i) => (
+                <span
+                  key={i}
+                  className="text-muted-foreground py-1 text-[10px] font-bold"
+                >
+                  {w}
+                </span>
+              ))}
+              {pickerCells.map((c, i) =>
+                c.key ? (
+                  <button
+                    key={c.key}
+                    type="button"
+                    data-testid="picker-day"
+                    data-jump={c.key}
+                    aria-label={c.key}
+                    onClick={() => jumpToDate(c.key as string)}
+                    className={`flex size-8 items-center justify-center rounded-full text-[13px] tabular-nums ${
+                      c.isToday
+                        ? "bg-primary text-primary-foreground font-bold"
+                        : "hover:bg-secondary"
+                    }`}
+                  >
+                    {c.day}
+                  </button>
+                ) : (
+                  <span key={`b-${i}`} />
+                ),
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+        <button
+          type="button"
+          data-testid="today-btn"
+          onClick={() => jumpToDate(todayKey)}
+          className="bg-secondary rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
+        >
+          Today
+        </button>
+      </div>
+    </div>
+  );
+
+  if (entries === undefined)
+    return (
+      <>
+        {header}
+        <TimelineLoading />
+      </>
+    );
 
   const months: { idx: number; year: number; month: number }[] = [];
   for (let i = start; i <= end; i++) {
@@ -421,7 +657,9 @@ function TimelineConnected() {
     });
 
   return (
-    <div data-testid="timeline" className="flex flex-col pb-16">
+    <>
+      {header}
+      <div data-testid="timeline" className="flex flex-col pb-16">
       {entries.length === 0 ? (
         <div data-testid="timeline-empty" className="px-6 pt-8 pb-2 text-center">
           <h2 className="text-base font-medium">No entries yet</h2>
@@ -582,7 +820,8 @@ function TimelineConnected() {
         entry={sheet.entry}
         preset={sheet.preset}
       />
-    </div>
+      </div>
+    </>
   );
 }
 

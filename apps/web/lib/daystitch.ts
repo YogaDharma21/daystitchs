@@ -85,6 +85,50 @@ export function monthIndex(d: Date): number {
   return d.getFullYear() * 12 + d.getMonth();
 }
 
+export function titleForYm(ym: string): string {
+  const p = ym.split("-");
+  return new Date(Number(p[0]), Number(p[1]), 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export interface MiniCell {
+  key: string | null;
+  day: number | null;
+  isToday: boolean;
+}
+
+export function miniGridCells(
+  year: number,
+  month: number,
+  todayKey: string,
+): MiniCell[] {
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const n = new Date(year, month + 1, 0).getDate();
+  const out: MiniCell[] = [];
+  for (let b = 0; b < offset; b++)
+    out.push({ key: null, day: null, isToday: false });
+  for (let d = 1; d <= n; d++) {
+    const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    out.push({ key, day: d, isToday: key === todayKey });
+  }
+  return out;
+}
+
+export function jumpWindow(
+  w: { start: number; end: number },
+  idx: number,
+): { start: number; end: number } {
+  if (idx >= w.start && idx <= w.end) return w;
+  return { start: idx - 1, end: idx + 1 };
+}
+
+export function jumpTarget(dateKey: string): { idx: number; sunKey: string } {
+  const d = parseDay(dateKey);
+  return { idx: monthIndex(d), sunKey: isoDay(sundayOf(d)) };
+}
+
 export function monthStartDay(idx: number): string {
   const y = Math.floor(idx / 12);
   const m = idx % 12;
