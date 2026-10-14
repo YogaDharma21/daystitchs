@@ -1,78 +1,55 @@
-import { mutationGeneric, queryGeneric } from "convex/server";
+import { mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
 
 import { assertEntryDraft } from "./entryRules";
 
-// Local document shape. Full end-to-end typing comes from codegen once the
-// owner runs `convex dev`; until then this keeps every db boundary typed
-// without `any` or casts in this file.
-interface EntryDoc {
-  _id: string;
-  userId: string;
-  date: string;
-  title: string;
-  type: "event" | "task";
-  start?: string;
-  end?: string;
-  time?: string;
-  loc?: string;
-  detail?: string;
-  done?: boolean;
-}
+type CtxAuth = QueryCtx["auth"] | MutationCtx["auth"];
 
-interface AuthProvider {
-  getUserIdentity: () => Promise<{ subject: string } | null>;
-}
-
-async function callerUserId(auth: AuthProvider): Promise<string | null> {
+// tokenIdentifier is the canonical stable identity key: it binds the Clerk
+// issuer to the user, so tokens from another instance can never collide.
+async function callerUserId(auth: CtxAuth): Promise<string | null> {
   const identity = await auth.getUserIdentity();
-  if (!identity) return null;
-  return identity.subject;
+  return identity?.tokenIdentifier ?? null;
 }
 
-async function requireUserId(auth: AuthProvider): Promise<string> {
+async function requireUserId(auth: CtxAuth): Promise<string> {
   const userId = await callerUserId(auth);
   if (!userId) throw new Error("Not signed in");
   return userId;
 }
 
 async function requireOwnedDoc(
+  ctx: QueryCtx | MutationCtx,
   userId: string,
-  load: () => Promise<EntryDoc | null>,
-): Promise<EntryDoc> {
-  const doc = await load();
+  id: Id<"entries">,
+): Promise<Doc<"entries">> {
+  const doc = await ctx.db.get(id);
   if (!doc || doc.userId !== userId) throw new Error("Entry not found");
   return doc;
 }
 
-export const listRange = queryGeneric({
+export const listRange = query({
   args: { start: v.string(), end: v.string() },
   handler: async (ctx, args) => {
     const userId = await callerUserId(ctx.auth);
     if (!userId) return [];
-    // NOTE: with codegen (`convex dev`) this becomes a full index range
-    // q.eq("userId", …).gte("date", …).lte("date", …). Without generated
-    // types the any-model cannot step compound-index fields, so the date
-    // bounds live in a filter until then. Same rows, one query.
     return await ctx.db
       .query("entries")
-      .withIndex("by_user_date", (q) => q.eq("userId", userId))
-      .filter((q) =>
-        q.and(
-          q.gte(q.field("date"), args.start),
-          q.lte(q.field("date"), args.end),
-        ),
+      .withIndex("by_userId_and_date", (q) =>
+        q.eq("userId", userId).gte("date", args.start).lte("date", args.end),
       )
       .order("asc")
-      .collect();
+      .take(5000);
   },
 });
 
-export const toggleDone = mutationGeneric({
+export const toggleDone = mutation({
   args: { id: v.id("entries") },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx.auth);
-    const doc = await requireOwnedDoc(userId, () => ctx.db.get(args.id));
+    const doc = await requireOwnedDoc(ctx, userId, args.id);
     if (doc.type !== "task") throw new Error("Only tasks track done");
     await ctx.db.patch(args.id, { done: !doc.done });
   },
@@ -82,7 +59,7 @@ const dateRule = v.string();
 const titleRule = v.string();
 const typeRule = v.union(v.literal("event"), v.literal("task"));
 
-export const create = mutationGeneric({
+export const create = mutation({
   args: {
     date: dateRule,
     title: titleRule,
@@ -97,11 +74,21 @@ export const create = mutationGeneric({
     const userId = await requireUserId(ctx.auth);
     // Rejects overlong title/loc/detail with an error (no silent truncation).
     assertEntryDraft(args);
-    const title = args.title.trim();
-    const doc: Record<string, string | boolean> = {
+    const doc: {
+      userId: string;
+      date: string;
+      title: string;
+      type: "event" | "task";
+      start?: string;
+      end?: string;
+      time?: string;
+      loc?: string;
+      detail?: string;
+      done?: boolean;
+    } = {
       userId,
       date: args.date,
-      title,
+      title: args.title.trim(),
       type: args.type,
     };
     if (args.type === "event") {
@@ -117,7 +104,7 @@ export const create = mutationGeneric({
   },
 });
 
-export const update = mutationGeneric({
+export const update = mutation({
   args: {
     id: v.id("entries"),
     date: dateRule,
@@ -132,17 +119,22 @@ export const update = mutationGeneric({
   },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx.auth);
-    const doc = await requireOwnedDoc(userId, () => ctx.db.get(args.id));
+    const doc = await requireOwnedDoc(ctx, userId, args.id);
     assertEntryDraft(args);
-    const patch: Record<string, string | boolean | undefined> = {
+    const patch: {
+      date: string;
+      title: string;
+      type: "event" | "task";
+      start?: string;
+      end?: string;
+      time?: string;
+      loc?: string;
+      detail?: string;
+      done?: boolean;
+    } = {
       date: args.date,
       title: args.title.trim(),
       type: args.type,
-      start: undefined,
-      end: undefined,
-      time: undefined,
-      loc: undefined,
-      detail: undefined,
     };
     if (args.type === "event") {
       if (args.start) patch.start = args.start;
@@ -158,11 +150,11 @@ export const update = mutationGeneric({
   },
 });
 
-export const remove = mutationGeneric({
+export const remove = mutation({
   args: { id: v.id("entries") },
   handler: async (ctx, args) => {
     const userId = await requireUserId(ctx.auth);
-    await requireOwnedDoc(userId, () => ctx.db.get(args.id));
+    await requireOwnedDoc(ctx, userId, args.id);
     await ctx.db.delete(args.id);
   },
 });

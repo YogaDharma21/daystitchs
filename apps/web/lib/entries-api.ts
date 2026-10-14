@@ -1,14 +1,13 @@
-// Typed Convex function references without codegen.
+// Convex function references from codegen.
 //
-// The owner generates `convex/_generated/api` on `convex dev`; until then
-// components import these references instead of `"entries:…"` string
-// literals with `as never` casts. Each reference is built with
-// `makeFunctionReference`, so `useQuery`/`useMutation` get real
-// `FunctionReference` objects with checked arg/return types.
+// Components import these instead of reaching into `_generated/api`
+// directly, keeping one place that names the data seam. Arg and return
+// types come from the function validators in convex/entries.ts.
 
-import { makeFunctionReference } from "convex/server";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
-import type { DayEntry, EntryType } from "./daystitch";
+import type { EntryType } from "./daystitch";
 
 export type CreateEntryArgs = {
   date: string;
@@ -22,37 +21,13 @@ export type CreateEntryArgs = {
 };
 
 export type UpdateEntryArgs = CreateEntryArgs & {
-  id: string;
+  id: Id<"entries">;
   /** Task-only; ignored for events. */
   done?: boolean;
 };
 
-export const listRangeQuery = makeFunctionReference<
-  "query",
-  { start: string; end: string },
-  DayEntry[]
->("entries:listRange");
-
-export const toggleDoneMutation = makeFunctionReference<
-  "mutation",
-  { id: string },
-  void
->("entries:toggleDone");
-
-export const createEntryMutation = makeFunctionReference<
-  "mutation",
-  CreateEntryArgs,
-  string
->("entries:create");
-
-export const updateEntryMutation = makeFunctionReference<
-  "mutation",
-  UpdateEntryArgs,
-  void
->("entries:update");
-
-export const removeEntryMutation = makeFunctionReference<
-  "mutation",
-  { id: string },
-  void
->("entries:remove");
+export const listRangeQuery = api.entries.listRange;
+export const toggleDoneMutation = api.entries.toggleDone;
+export const createEntryMutation = api.entries.create;
+export const updateEntryMutation = api.entries.update;
+export const removeEntryMutation = api.entries.remove;

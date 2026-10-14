@@ -13,5 +13,5 @@ export default defineSchema({
     loc: v.optional(v.string()),
     detail: v.optional(v.string()),
     done: v.optional(v.boolean()),
-  }).index("by_user_date", ["userId", "date"]),
+  }).index("by_userId_and_date", ["userId", "date"]),
 });
