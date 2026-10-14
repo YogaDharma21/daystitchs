@@ -15,7 +15,9 @@ import {
   sundaysOfMonth,
   weekLabel,
   type DayEntry,
+  type EntryType,
 } from "@/lib/daystitch";
+import EntrySheet from "@/components/entry-sheet";
 
 function MonthBanner({
   year,
@@ -92,14 +94,21 @@ function WeekRow({
   );
 }
 
-function EventCard({ entry }: { entry: DayEntry }) {
+function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
   const sub = fmtRange(entry);
   const meta = [sub, entry.loc, entry.detail].filter(Boolean).join(" · ");
   return (
     <div
       data-testid="event-card"
       data-entry-id={entry._id}
-      className="bg-secondary/50 rounded-xl px-3.5 py-3"
+      data-open={entry._id}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onOpen();
+      }}
+      className="bg-secondary/50 cursor-pointer rounded-xl px-3.5 py-3"
     >
       <div data-testid="event-title" className="text-sm font-semibold">
         {entry.title}
@@ -116,9 +125,11 @@ function EventCard({ entry }: { entry: DayEntry }) {
 function TaskCard({
   entry,
   onToggle,
+  onOpen,
 }: {
   entry: DayEntry;
   onToggle: () => void;
+  onOpen: () => void;
 }) {
   const sub = fmtRange(entry);
   const meta = [sub, entry.detail].filter(Boolean).join(" · ");
@@ -127,8 +138,15 @@ function TaskCard({
     <div
       data-testid="task-card"
       data-entry-id={entry._id}
+      data-open={entry._id}
       data-done={done ? "true" : "false"}
-      className="bg-secondary/50 flex items-start gap-2.5 rounded-xl px-3.5 py-3"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") onOpen();
+      }}
+      className="bg-secondary/50 flex cursor-pointer items-start gap-2.5 rounded-xl px-3.5 py-3"
     >
       <button
         data-testid="task-toggle"
@@ -168,15 +186,20 @@ function DaySection({
   todayKey,
   entries,
   onToggleDone,
+  onAdd,
+  onOpen,
 }: {
   day: Date;
   todayKey: string;
   entries: DayEntry[];
   onToggleDone: (id: string) => void;
+  onAdd: (date: string, type: EntryType) => void;
+  onOpen: (entry: DayEntry) => void;
 }) {
   const key = isoDay(day);
   const dow = day.toLocaleDateString("en-US", { weekday: "short" });
   const sorted = sortEntries(entries);
+  const [chooserOpen, setChooserOpen] = React.useState(false);
   return (
     <section
       data-testid="day-section"
@@ -198,6 +221,37 @@ function DaySection({
         >
           {day.getDate()}
         </span>
+        <button
+          type="button"
+          data-testid="day-add"
+          data-add={key}
+          aria-label={`Add on ${key}`}
+          aria-expanded={chooserOpen}
+          onClick={() => setChooserOpen((v) => !v)}
+          className="border-border text-muted-foreground mt-1.5 flex size-6 items-center justify-center rounded-full border text-sm leading-none"
+        >
+          {chooserOpen ? "×" : "+"}
+        </button>
+        {chooserOpen ? (
+          <div data-testid="day-choose" data-choose={key} className="flex flex-col gap-1.5">
+            {(["task", "event"] as EntryType[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                data-testid={`day-pick-${t}`}
+                data-pick={t}
+                data-date={key}
+                onClick={() => {
+                  setChooserOpen(false);
+                  onAdd(key, t);
+                }}
+                className="bg-secondary rounded-full border px-2.5 py-1 text-[11px] font-bold"
+              >
+                {t === "task" ? "Task" : "Event"}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
       <div className="flex min-w-0 flex-col gap-2">
         {sorted.length === 0 ? (
@@ -207,9 +261,14 @@ function DaySection({
         ) : (
           sorted.map((e) =>
             e.type === "task" ? (
-              <TaskCard key={e._id} entry={e} onToggle={() => onToggleDone(e._id)} />
+              <TaskCard
+                key={e._id}
+                entry={e}
+                onToggle={() => onToggleDone(e._id)}
+                onOpen={() => onOpen(e)}
+              />
             ) : (
-              <EventCard key={e._id} entry={e} />
+              <EventCard key={e._id} entry={e} onOpen={() => onOpen(e)} />
             ),
           )
         )}
@@ -242,6 +301,13 @@ function TimelineConnected() {
   });
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const [extending, setExtending] = React.useState<null | "top" | "bottom">(null);
+  const [fabOpen, setFabOpen] = React.useState(false);
+  const [sheet, setSheet] = React.useState<{
+    open: boolean;
+    date: string;
+    entry: DayEntry | null;
+    preset: EntryType;
+  }>({ open: false, date: "", entry: null, preset: "task" });
   const scrolledRef = React.useRef(false);
   const loadedRef = React.useRef(false);
   const anchorRef = React.useRef<{ id: string; top: number } | null>(null);
@@ -328,6 +394,15 @@ function TimelineConnected() {
     [toggleDone],
   );
 
+  const openNew = React.useCallback(
+    (date: string, preset: EntryType) =>
+      setSheet({ open: true, date, entry: null, preset }),
+    [],
+  );
+  const openEdit = React.useCallback((entry: DayEntry) =>
+    setSheet({ open: true, date: entry.date, entry, preset: entry.type }),
+  []);
+
   if (entries === undefined) return <TimelineLoading />;
 
   const months: { idx: number; year: number; month: number }[] = [];
@@ -399,6 +474,8 @@ function TimelineConnected() {
                         todayKey={todayKey}
                         entries={byDate.get(isoDay(d)) ?? []}
                         onToggleDone={onToggleDone}
+                        onAdd={openNew}
+                        onOpen={openEdit}
                       />
                     ))}
                   </React.Fragment>
@@ -438,6 +515,8 @@ function TimelineConnected() {
                       todayKey={todayKey}
                       entries={byDate.get(isoDay(d)) ?? []}
                       onToggleDone={onToggleDone}
+                      onAdd={openNew}
+                      onOpen={openEdit}
                     />
                   ))}
                 </React.Fragment>
@@ -456,6 +535,53 @@ function TimelineConnected() {
           Loading later months…
         </div>
       ) : null}
+      {fabOpen ? (
+        <div
+          data-testid="fab-scrim"
+          aria-hidden="true"
+          onClick={() => setFabOpen(false)}
+          className="fixed inset-0 z-30 bg-black/60"
+        />
+      ) : null}
+      <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-2.5">
+        {fabOpen ? (
+          <div data-testid="fab-speeddial" className="flex flex-col items-end gap-2.5">
+            {(["task", "event"] as EntryType[]).map((t) => (
+              <button
+                key={t}
+                type="button"
+                data-testid={`fab-create-${t}`}
+                onClick={() => {
+                  setFabOpen(false);
+                  openNew(todayKey, t);
+                }}
+                className="bg-secondary rounded-full px-5 py-3.5 text-[15px] font-semibold shadow-lg"
+              >
+                {t === "task" ? "Task" : "Event"}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          data-testid="fab"
+          aria-label={fabOpen ? "Close" : "Add entry"}
+          aria-expanded={fabOpen}
+          onClick={() => setFabOpen((v) => !v)}
+          className="bg-primary text-primary-foreground flex size-14 items-center justify-center rounded-full text-3xl leading-none shadow-lg"
+        >
+          <span aria-hidden="true" className={fabOpen ? "rotate-45" : ""}>
+            +
+          </span>
+        </button>
+      </div>
+      <EntrySheet
+        open={sheet.open}
+        onOpenChange={(open) => setSheet((s) => ({ ...s, open }))}
+        date={sheet.date || todayKey}
+        entry={sheet.entry}
+        preset={sheet.preset}
+      />
     </div>
   );
 }
