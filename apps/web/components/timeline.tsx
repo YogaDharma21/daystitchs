@@ -11,6 +11,7 @@ import {
 } from "@workspace/ui/components/popover";
 import {
   daysOfWeek,
+  entryCardMeta,
   fmtRange,
   isoDay,
   jumpTarget,
@@ -26,7 +27,9 @@ import {
   type DayEntry,
   type EntryType,
 } from "@/lib/daystitch";
+import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api";
 import EntrySheet from "@/components/entry-sheet";
+import { EntryTypeChoice } from "@/components/entry-type-choice";
 
 function MonthBanner({
   year,
@@ -103,9 +106,15 @@ function WeekRow({
   );
 }
 
+function onCardKeyDown(onOpen: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") onOpen();
+  };
+}
+
 function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
   const sub = fmtRange(entry);
-  const meta = [sub, entry.loc, entry.detail].filter(Boolean).join(" · ");
+  const meta = entryCardMeta([sub, entry.loc, entry.detail]);
   return (
     <div
       data-testid="event-card"
@@ -114,9 +123,7 @@ function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
       role="button"
       tabIndex={0}
       onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onOpen();
-      }}
+      onKeyDown={onCardKeyDown(onOpen)}
       className="bg-secondary/50 cursor-pointer rounded-xl px-3.5 py-3"
     >
       <div data-testid="event-title" className="text-sm font-semibold">
@@ -141,7 +148,7 @@ function TaskCard({
   onOpen: () => void;
 }) {
   const sub = fmtRange(entry);
-  const meta = [sub, entry.detail].filter(Boolean).join(" · ");
+  const meta = entryCardMeta([sub, entry.detail]);
   const done = Boolean(entry.done);
   return (
     <div
@@ -152,9 +159,7 @@ function TaskCard({
       role="button"
       tabIndex={0}
       onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") onOpen();
-      }}
+      onKeyDown={onCardKeyDown(onOpen)}
       className="bg-secondary/50 flex cursor-pointer items-start gap-2.5 rounded-xl px-3.5 py-3"
     >
       <button
@@ -243,22 +248,23 @@ function DaySection({
         </button>
         {chooserOpen ? (
           <div data-testid="day-choose" data-choose={key} className="flex flex-col gap-1.5">
-            {(["task", "event"] as EntryType[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                data-testid={`day-pick-${t}`}
-                data-pick={t}
-                data-date={key}
-                onClick={() => {
-                  setChooserOpen(false);
-                  onAdd(key, t);
-                }}
-                className="bg-secondary rounded-full border px-2.5 py-1 text-[11px] font-bold"
-              >
-                {t === "task" ? "Task" : "Event"}
-              </button>
-            ))}
+            <EntryTypeChoice
+              render={(t, label) => (
+                <button
+                  type="button"
+                  data-testid={`day-pick-${t}`}
+                  data-pick={t}
+                  data-date={key}
+                  onClick={() => {
+                    setChooserOpen(false);
+                    onAdd(key, t);
+                  }}
+                  className="bg-secondary rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                >
+                  {label}
+                </button>
+              )}
+            />
           </div>
         ) : null}
       </div>
@@ -302,9 +308,43 @@ function TimelineLoading() {
   );
 }
 
+function MonthChip({
+  idx,
+  active,
+  onJump,
+}: {
+  idx: number;
+  active: boolean;
+  onJump: (idx: number) => void;
+}) {
+  return (
+    <button
+      type="button"
+      data-testid="picker-chip"
+      data-idx={idx}
+      aria-pressed={active}
+      onClick={() => onJump(idx)}
+      className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+        active
+          ? "chip-on bg-primary text-primary-foreground border-transparent"
+          : "bg-secondary"
+      }`}
+    >
+      {new Date(Math.floor(idx / 12), idx % 12, 1).toLocaleDateString("en-US", {
+        month: "short",
+      })}
+    </button>
+  );
+}
+
 function TimelineConnected() {
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
   const todayIdx = React.useMemo(() => monthIndex(new Date()), []);
+  // Prototype bounds: one full year each side of the boot year.
+  const { minMonth, maxMonth } = React.useMemo(() => {
+    const y = new Date().getFullYear();
+    return { minMonth: (y - 1) * 12, maxMonth: (y + 1) * 12 + 11 };
+  }, []);
   const [{ start, end }, setWindow] = React.useState(() => {
     const cur = monthIndex(new Date());
     return { start: cur - 1, end: cur + 1 };
@@ -329,21 +369,35 @@ function TimelineConnected() {
   const anchorRef = React.useRef<{ id: string; top: number } | null>(null);
   const pendingJump = React.useRef<string | null>(null);
   const chipsRef = React.useRef<HTMLDivElement | null>(null);
+  // In-flight guard: one scroll gesture adds one month per end. `extending`
+  // state drives the loading UI; this ref flips synchronously so rapid scroll
+  // ticks cannot queue extra extensions before the new range query resolves.
+  const extendRef = React.useRef<null | "top" | "bottom">(null);
+  // Synchronous mirror of the window for bounds checks inside the scroll
+  // handler (state would read stale between dispatch and render).
+  const winRef = React.useRef({ start, end });
 
   const rangeStart = monthStartDay(start);
   const rangeEnd = monthEndDay(end);
-  const entries = useQuery("entries:listRange" as never, {
+  const entries = useQuery(listRangeQuery, {
     start: rangeStart,
     end: rangeEnd,
-  } as never) as DayEntry[] | undefined;
-  const toggleDone = useMutation("entries:toggleDone" as never) as unknown as (
-    args: { id: string },
-  ) => Promise<void>;
+  });
+  const toggleDone = useMutation(toggleDoneMutation);
 
   loadedRef.current = entries !== undefined;
 
+  // Keep the synchronous window mirror consistent for jumps/expansions that
+  // do not go through the scroll handler.
   React.useEffect(() => {
-    if (entries !== undefined) setExtending(null);
+    winRef.current = { start, end };
+  }, [start, end]);
+
+  React.useEffect(() => {
+    if (entries !== undefined) {
+      extendRef.current = null;
+      setExtending(null);
+    }
   }, [entries]);
 
   const scrollToKey = React.useCallback((key: string) => {
@@ -374,6 +428,7 @@ function TimelineConnected() {
   const jumpToDate = React.useCallback(
     (key: string) => {
       const { idx, sunKey } = jumpTarget(key);
+      if (idx < minMonth || idx > maxMonth) return;
       setWindow((w) => jumpWindow(w, idx));
       setExpanded((prev) =>
         prev[sunKey] ? prev : { ...prev, [sunKey]: true },
@@ -381,7 +436,7 @@ function TimelineConnected() {
       setPickerOpen(false);
       pendingJump.current = key;
     },
-    [],
+    [minMonth, maxMonth],
   );
 
   React.useEffect(() => {
@@ -429,7 +484,14 @@ function TimelineConnected() {
           ?.closest?.("[data-ym]");
         const ym = top?.getAttribute?.("data-ym");
         if (ym) setTitle(titleForYm(ym));
-        if (window.scrollY < 500) {
+        // Sliding 3-month window: each extension adds one month and trims
+        // the far end, so the range query stays ~3 months. One extension
+        // per end while a query is in flight (extendRef guard).
+        if (
+          window.scrollY < 500 &&
+          extendRef.current === null &&
+          winRef.current.start > minMonth
+        ) {
           const el = document
             .elementFromPoint(window.innerWidth / 2, 80)
             ?.closest?.("[data-ym]");
@@ -439,21 +501,33 @@ function TimelineConnected() {
               top: (el as HTMLElement).getBoundingClientRect().top,
             };
           }
+          extendRef.current = "top";
           setExtending("top");
-          setWindow((w) => ({ ...w, start: w.start - 1 }));
+          setWindow((w) => {
+            const next = { start: w.start - 1, end: w.end - 1 };
+            winRef.current = next;
+            return next;
+          });
         }
         if (
           window.innerHeight + window.scrollY >
-          document.body.scrollHeight - 500
+            document.body.scrollHeight - 500 &&
+          extendRef.current === null &&
+          winRef.current.end < maxMonth
         ) {
+          extendRef.current = "bottom";
           setExtending("bottom");
-          setWindow((w) => ({ ...w, end: w.end + 1 }));
+          setWindow((w) => {
+            const next = { start: w.start + 1, end: w.end + 1 };
+            winRef.current = next;
+            return next;
+          });
         }
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [minMonth, maxMonth]);
 
   const byDate = React.useMemo(() => {
     const m = new Map<string, DayEntry[]>();
@@ -467,7 +541,7 @@ function TimelineConnected() {
 
   const onToggleDone = React.useCallback(
     (id: string) => {
-      void toggleDone({ id } as never);
+      void toggleDone({ id });
     },
     [toggleDone],
   );
@@ -531,7 +605,7 @@ function TimelineConnected() {
                 type="button"
                 data-testid="picker-prev"
                 aria-label="Previous month"
-                onClick={() => setPickerIdx((i) => i - 1)}
+                onClick={() => setPickerIdx((i) => Math.max(minMonth, i - 1))}
                 className="bg-secondary flex size-8 items-center justify-center rounded-full"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
@@ -543,7 +617,7 @@ function TimelineConnected() {
                 type="button"
                 data-testid="picker-next"
                 aria-label="Next month"
-                onClick={() => setPickerIdx((i) => i + 1)}
+                onClick={() => setPickerIdx((i) => Math.min(maxMonth, i + 1))}
                 className="bg-secondary flex size-8 items-center justify-center rounded-full"
               >
                 <ChevronRight aria-hidden="true" className="size-4" />
@@ -556,32 +630,23 @@ function TimelineConnected() {
             >
               {chipRange.map((idx) =>
                 idx % 12 === 0 ? (
-                  <span
-                    key={idx}
-                    className="text-muted-foreground flex-none px-1 text-[11px] font-bold"
-                  >
-                    {Math.floor(idx / 12)}
-                  </span>
+                  <React.Fragment key={idx}>
+                    <span className="text-muted-foreground flex-none px-1 text-[11px] font-bold">
+                      {Math.floor(idx / 12)}
+                    </span>
+                    <MonthChip
+                      idx={idx}
+                      active={idx === pickerIdx}
+                      onJump={onChipJump}
+                    />
+                  </React.Fragment>
                 ) : (
-                  <button
+                  <MonthChip
                     key={idx}
-                    type="button"
-                    data-testid="picker-chip"
-                    data-idx={idx}
-                    aria-pressed={idx === pickerIdx}
-                    onClick={() => onChipJump(idx)}
-                    className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-                      idx === pickerIdx
-                        ? "chip-on bg-primary text-primary-foreground border-transparent"
-                        : "bg-secondary"
-                    }`}
-                  >
-                    {new Date(
-                      Math.floor(idx / 12),
-                      idx % 12,
-                      1,
-                    ).toLocaleDateString("en-US", { month: "short" })}
-                  </button>
+                    idx={idx}
+                    active={idx === pickerIdx}
+                    onJump={onChipJump}
+                  />
                 ),
               )}
             </div>
@@ -784,20 +849,21 @@ function TimelineConnected() {
       <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-2.5">
         {fabOpen ? (
           <div data-testid="fab-speeddial" className="flex flex-col items-end gap-2.5">
-            {(["task", "event"] as EntryType[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                data-testid={`fab-create-${t}`}
-                onClick={() => {
-                  setFabOpen(false);
-                  openNew(todayKey, t);
-                }}
-                className="bg-secondary rounded-full px-5 py-3.5 text-[15px] font-semibold shadow-lg"
-              >
-                {t === "task" ? "Task" : "Event"}
-              </button>
-            ))}
+            <EntryTypeChoice
+              render={(t, label) => (
+                <button
+                  type="button"
+                  data-testid={`fab-create-${t}`}
+                  onClick={() => {
+                    setFabOpen(false);
+                    openNew(todayKey, t);
+                  }}
+                  className="bg-secondary rounded-full px-5 py-3.5 text-[15px] font-semibold shadow-lg"
+                >
+                  {label}
+                </button>
+              )}
+            />
           </div>
         ) : null}
         <button
