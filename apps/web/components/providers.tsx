@@ -8,6 +8,9 @@ import { useAuth } from "@clerk/nextjs"
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL
 const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 
+// Auth wiring: ConvexProviderWithClerk fetches a Clerk session token from
+// the JWT template named "convex" (see convex/auth.config.ts, which must
+// list the matching Clerk issuer domain with applicationID "convex").
 function ConvexClientProvider({ children }: { children: React.ReactNode }) {
   const client = React.useMemo(() => {
     if (!convexUrl) {

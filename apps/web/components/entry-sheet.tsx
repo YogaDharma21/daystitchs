@@ -13,11 +13,20 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet";
 import {
+  DETAIL_PLACEHOLDER,
   entryDateSummary,
+  TYPE_LABEL,
   validateEntryDraft,
   type DayEntry,
   type EntryType,
 } from "@/lib/daystitch";
+import {
+  createEntryMutation,
+  removeEntryMutation,
+  updateEntryMutation,
+  type CreateEntryArgs,
+} from "@/lib/entries-api";
+import { EntryTypeChoice } from "@/components/entry-type-choice";
 
 interface EntrySheetProps {
   open: boolean;
@@ -34,15 +43,9 @@ export default function EntrySheet({
   entry,
   preset,
 }: EntrySheetProps) {
-  const create = useMutation("entries:create" as never) as unknown as (
-    args: Record<string, unknown>,
-  ) => Promise<string>;
-  const update = useMutation("entries:update" as never) as unknown as (
-    args: Record<string, unknown>,
-  ) => Promise<void>;
-  const remove = useMutation("entries:remove" as never) as unknown as (
-    args: { id: string },
-  ) => Promise<void>;
+  const create = useMutation(createEntryMutation);
+  const update = useMutation(updateEntryMutation);
+  const remove = useMutation(removeEntryMutation);
 
   const [type, setType] = React.useState<EntryType>(entry?.type ?? preset);
   const [title, setTitle] = React.useState(entry?.title ?? "");
@@ -75,7 +78,7 @@ export default function EntrySheet({
   const onSave = () => {
     if (error || saving) return;
     setSaving(true);
-    const payload: Record<string, unknown> = {
+    const payload: CreateEntryArgs = {
       date: day,
       title: title.trim(),
       type,
@@ -88,8 +91,10 @@ export default function EntrySheet({
       payload.time = time;
     }
     if (detail.trim()) payload.detail = detail.trim();
-    const done = (isEdit ? update({ ...payload, id: entry._id }) : create(payload)) as Promise<unknown>;
-    void done.then(
+    const saved = isEdit
+      ? update({ ...payload, id: entry._id })
+      : create(payload);
+    void saved.then(
       () => onOpenChange(false),
       () => setSaving(false),
     );
@@ -98,7 +103,7 @@ export default function EntrySheet({
   const onDelete = () => {
     if (!entry || saving) return;
     setSaving(true);
-    void (remove({ id: entry._id }) as Promise<unknown>).then(
+    void remove({ id: entry._id }).then(
       () => onOpenChange(false),
       () => setSaving(false),
     );
@@ -117,9 +122,7 @@ export default function EntrySheet({
         />
         <SheetHeader className="p-0 text-left">
           <SheetTitle data-testid="entry-sheet-title">
-            {isEdit
-              ? `Edit ${type === "event" ? "event" : "task"}`
-              : `New ${type === "event" ? "event" : "task"}`}
+            {isEdit ? `Edit ${TYPE_LABEL[type].toLowerCase()}` : `New ${TYPE_LABEL[type].toLowerCase()}`}
           </SheetTitle>
           <SheetDescription data-testid="entry-date-summary">
             {summary}
@@ -127,19 +130,21 @@ export default function EntrySheet({
         </SheetHeader>
 
         <div className="mt-3 flex gap-2" role="group" aria-label="Entry type">
-          {(["task", "event"] as EntryType[]).map((t) => (
-            <Button
-              key={t}
-              type="button"
-              size="sm"
-              variant={type === t ? "default" : "secondary"}
-              aria-pressed={type === t}
-              data-testid={`entry-type-${t}`}
-              onClick={() => setType(t)}
-            >
-              {t === "task" ? "Task" : "Event"}
-            </Button>
-          ))}
+          <EntryTypeChoice
+            render={(t, label) => (
+              <Button
+                key={t}
+                type="button"
+                size="sm"
+                variant={type === t ? "default" : "secondary"}
+                aria-pressed={type === t}
+                data-testid={`entry-type-${t}`}
+                onClick={() => setType(t)}
+              >
+                {label}
+              </Button>
+            )}
+          />
         </div>
 
         <label
@@ -254,9 +259,7 @@ export default function EntrySheet({
           <Input
             id="entry-detail"
             data-testid="entry-detail"
-            placeholder={
-              type === "task" ? "e.g. Bring slides" : "e.g. Agenda, links, notes"
-            }
+            placeholder={DETAIL_PLACEHOLDER[type]}
             maxLength={120}
             autoComplete="off"
             value={detail}
