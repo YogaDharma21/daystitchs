@@ -118,3 +118,37 @@ export function sundaysOfMonth(year: number, month: number): Date[] {
   }
   return out;
 }
+
+export interface EntryDraft {
+  title: string;
+  date: string;
+  type: EntryType;
+  start?: string;
+  end?: string;
+  time?: string;
+  loc?: string;
+  detail?: string;
+}
+
+export function validateEntryDraft(d: EntryDraft): string | null {
+  if (!d.title.trim()) return "Title is required";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) return "Date is required";
+  if (d.type !== "event" && d.type !== "task") return "Unknown entry type";
+  return null;
+}
+
+export function entryDateSummary(d: EntryDraft): string {
+  const p = d.date.split("-");
+  const dateStr =
+    p.length === 3
+      ? new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).toLocaleDateString(
+          "en-US",
+          { weekday: "long", month: "long", day: "numeric" },
+        )
+      : "Pick a date";
+  let t = "";
+  if (d.type === "task") t = d.time ? fmtTime(d.time) : "";
+  else if (d.start && d.end) t = `${fmtTime(d.start)} – ${fmtTime(d.end)}`;
+  else if (d.start) t = fmtTime(d.start);
+  return t ? `${dateStr}  ${t}` : dateStr;
+}
