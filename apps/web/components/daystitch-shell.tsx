@@ -25,7 +25,10 @@ function ShellLoading() {
       {/* Same two header rows as AppShell and the timeline, so nothing moves
           when the real header takes over. */}
       <header className="flex items-center justify-end border-b px-6 py-4">
-        <SkeletonShape className="size-8 rounded-full" />
+        {/* Clerk's UserButton renders nothing until Clerk is ready, so leave
+            the spot blank and keep the row height. The real circle appears
+            the moment Clerk resolves. */}
+        <span aria-hidden="true" className="size-8" />
       </header>
       <div className="flex items-center justify-between border-b px-6 py-3">
         <SkeletonShape className="h-7 w-36 rounded-md" />
