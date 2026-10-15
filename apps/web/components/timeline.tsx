@@ -2,13 +2,18 @@
 
 import * as React from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 import {
   daysOfWeek,
   entryCardMeta,
@@ -36,10 +41,12 @@ function MonthBanner({
   year,
   month,
   count,
+  first,
 }: {
   year: number;
   month: number;
   count: number;
+  first: boolean;
 }) {
   const name = new Date(year, month, 1).toLocaleDateString("en-US", {
     month: "long",
@@ -49,12 +56,36 @@ function MonthBanner({
       data-testid="month-banner"
       id={`m-${year}-${month}`}
       data-ym={`${year}-${month}`}
-      className="border-b px-6 py-10"
+      className={`relative flex min-h-[150px] flex-col justify-center overflow-hidden px-[58px] pt-12 pb-11 scroll-mt-[70px] ${
+        first ? "" : "mt-7"
+      }`}
+      style={{
+        // Port of the index.html banner: radial highlight over a vertical
+        // gradient, with an oversized ghost month number at the right edge.
+        background:
+          "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
+        color: "var(--secondary-foreground)",
+      }}
     >
-      <p data-testid="month-count" className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[128px] leading-none font-extrabold tabular-nums select-none"
+        style={{
+          color: "color-mix(in oklch, var(--foreground) 8%, transparent)",
+        }}
+      >
+        {String(month + 1).padStart(2, "0")}
+      </span>
+      <p
+        data-testid="month-count"
+        className="text-muted-foreground relative m-0 mb-1.5 text-[11px] font-bold tracking-[0.14em] uppercase"
+      >
         {year} · {count} {count === 1 ? "entry" : "entries"}
       </p>
-      <h2 data-testid="month-title" className="mt-1 text-3xl font-bold tracking-tight">
+      <h2
+        data-testid="month-title"
+        className="relative m-0 text-[34px] font-extrabold tracking-[-0.03em]"
+      >
         {name}
       </h2>
     </div>
@@ -221,7 +252,7 @@ function DaySection({
       data-date={key}
       data-ym={`${day.getFullYear()}-${day.getMonth()}`}
       id={`d-${key}`}
-      className="grid grid-cols-[44px_1fr] gap-2 px-6 pt-5"
+      className="grid scroll-mt-20 grid-cols-[44px_1fr] gap-2 px-6 pt-5"
     >
       <div className="flex flex-col items-center gap-0.5 pt-0.5">
         <span className="text-muted-foreground text-[10px] font-bold tracking-[0.14em] uppercase">
@@ -346,10 +377,22 @@ function TimelineConnected() {
     const y = new Date().getFullYear();
     return { minMonth: (y - 1) * 12, maxMonth: (y + 1) * 12 + 11 };
   }, []);
-  const [{ start, end }, setWindow] = React.useState(() => {
+  // `win` is the month range requested from the backend. Within a session it
+  // only grows, one month per scroll gesture at either end, like the original
+  // single-file app, so months already on screen are never dropped when new
+  // ones load.
+  const [win, setWin] = React.useState(() => {
     const cur = monthIndex(new Date());
     return { start: cur - 1, end: cur + 1 };
   });
+  // `view` is the last range that arrived with data. Rendering only from a
+  // resolved request/response pair keeps the timeline mounted while the next
+  // range loads instead of swapping to the loading skeleton on every gesture.
+  const [view, setView] = React.useState<{
+    start: number;
+    end: number;
+    entries: DayEntry[];
+  } | null>(null);
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const [extending, setExtending] = React.useState<null | "top" | "bottom">(null);
   const [fabOpen, setFabOpen] = React.useState(false);
@@ -367,39 +410,37 @@ function TimelineConnected() {
   }>({ open: false, date: "", entry: null, preset: "task" });
   const scrolledRef = React.useRef(false);
   const loadedRef = React.useRef(false);
-  const anchorRef = React.useRef<{ id: string; top: number } | null>(null);
+  const anchorRef = React.useRef<{
+    id: string;
+    top: number;
+    expectStart: number;
+  } | null>(null);
   const pendingJump = React.useRef<string | null>(null);
   const chipsRef = React.useRef<HTMLDivElement | null>(null);
+  const headerRef = React.useRef<HTMLDivElement | null>(null);
   // In-flight guard: one scroll gesture adds one month per end. `extending`
   // state drives the loading UI; this ref flips synchronously so rapid scroll
   // ticks cannot queue extra extensions before the new range query resolves.
   const extendRef = React.useRef<null | "top" | "bottom">(null);
-  // Synchronous mirror of the window for bounds checks inside the scroll
-  // handler (state would read stale between dispatch and render).
-  const winRef = React.useRef({ start, end });
 
-  const rangeStart = monthStartDay(start);
-  const rangeEnd = monthEndDay(end);
   const entries = useQuery(listRangeQuery, {
-    start: rangeStart,
-    end: rangeEnd,
+    start: monthStartDay(win.start),
+    end: monthEndDay(win.end),
   });
   const toggleDone = useMutation(toggleDoneMutation);
 
-  loadedRef.current = entries !== undefined;
+  loadedRef.current = view !== null;
 
-  // Keep the synchronous window mirror consistent for jumps/expansions that
-  // do not go through the scroll handler.
+  // Fold each resolved range into the rendered snapshot and release the
+  // in-flight guard. When args change, Convex resets `entries` to undefined
+  // while it swaps watches, so a defined result always pairs with the
+  // current `win`.
   React.useEffect(() => {
-    winRef.current = { start, end };
-  }, [start, end]);
-
-  React.useEffect(() => {
-    if (entries !== undefined) {
-      extendRef.current = null;
-      setExtending(null);
-    }
-  }, [entries]);
+    if (entries === undefined) return;
+    setView({ start: win.start, end: win.end, entries });
+    extendRef.current = null;
+    setExtending(null);
+  }, [entries, win]);
 
   const scrollToKey = React.useCallback((key: string) => {
     const p = key.split("-");
@@ -412,33 +453,63 @@ function TimelineConnected() {
     if (ym) setTitle(titleForYm(ym));
   }, []);
 
-  React.useEffect(() => {
-    if (entries === undefined) return;
-    const key = pendingJump.current;
-    pendingJump.current = null;
-    if (key) {
-      scrollToKey(key);
-      return;
-    }
-    if (!scrolledRef.current) {
-      scrolledRef.current = true;
-      scrollToKey(todayKey);
-    }
-  }, [entries, start, end, expanded, todayKey, scrollToKey]);
-
   const jumpToDate = React.useCallback(
     (key: string) => {
       const { idx, sunKey } = jumpTarget(key);
       if (idx < minMonth || idx > maxMonth) return;
-      setWindow((w) => jumpWindow(w, idx));
+      anchorRef.current = null;
+      setWin((w) => jumpWindow(w, idx));
       setExpanded((prev) =>
         prev[sunKey] ? prev : { ...prev, [sunKey]: true },
       );
       setPickerOpen(false);
       pendingJump.current = key;
+      // If the target is already mounted, every state update above can bail
+      // out and no commit would consume the pending jump. Try once on the
+      // next frame; the layout effect below wins when data is still loading.
+      requestAnimationFrame(() => {
+        if (
+          pendingJump.current === key &&
+          document.getElementById(`d-${key}`)
+        ) {
+          pendingJump.current = null;
+          scrollToKey(key);
+        }
+      });
     },
-    [minMonth, maxMonth],
+    [minMonth, maxMonth, scrollToKey],
   );
+
+  // Scroll restoration pass. Runs after every commit on purpose: a jump
+  // target or a prepended month can enter the DOM from a landed range query
+  // or from a plain week expansion, and compensation must apply in the same
+  // paint as the layout change.
+  React.useLayoutEffect(() => {
+    if (!view) return;
+
+    const jump = pendingJump.current;
+    if (jump) {
+      if (!document.getElementById(`d-${jump}`)) return;
+      pendingJump.current = null;
+      scrollToKey(jump);
+      return;
+    }
+
+    const anchor = anchorRef.current;
+    if (anchor && view.start <= anchor.expectStart) {
+      anchorRef.current = null;
+      const restored = document.getElementById(anchor.id);
+      if (restored) {
+        window.scrollBy(0, restored.getBoundingClientRect().top - anchor.top);
+      }
+      return;
+    }
+
+    if (!scrolledRef.current) {
+      scrolledRef.current = true;
+      scrollToKey(todayKey);
+    }
+  });
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -465,80 +536,69 @@ function TimelineConnected() {
   }, [pickerOpen, pickerIdx]);
 
   React.useEffect(() => {
-    const a = anchorRef.current;
-    if (!a) return;
-    anchorRef.current = null;
-    const restored = document.getElementById(a.id);
-    if (restored) window.scrollBy(0, restored.getBoundingClientRect().top - a.top);
-  }, [start]);
-
-  React.useEffect(() => {
     let ticking = false;
+    const topNode = () => {
+      const headerH = headerRef.current?.offsetHeight ?? 56;
+      const el = document.elementFromPoint(window.innerWidth / 2, headerH + 6);
+      return el?.closest?.("[data-ym]") ?? null;
+    };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         ticking = false;
         if (!loadedRef.current) return;
-        const top = document
-          .elementFromPoint(window.innerWidth / 2, 80)
-          ?.closest?.("[data-ym]");
+        const top = topNode();
         const ym = top?.getAttribute?.("data-ym");
         if (ym) setTitle(titleForYm(ym));
-        // Sliding 3-month window: each extension adds one month and trims
-        // the far end, so the range query stays ~3 months. One extension
-        // per end while a query is in flight (extendRef guard).
+        // One extension per end while a query is in flight (extendRef guard).
+        // The requested range only grows; months on screen are never dropped.
         if (
           window.scrollY < 500 &&
           extendRef.current === null &&
-          winRef.current.start > minMonth
+          win.start > minMonth
         ) {
-          const el = document
-            .elementFromPoint(window.innerWidth / 2, 80)
-            ?.closest?.("[data-ym]");
-          if (el?.id) {
+          // The point just under the header can land on a node without
+          // `data-ym` (empty-state block, gaps); fall back to the first
+          // month-scoped element in the document.
+          const anchorEl = top ?? document.querySelector("[data-ym]");
+          if (anchorEl?.id) {
             anchorRef.current = {
-              id: el.id,
-              top: (el as HTMLElement).getBoundingClientRect().top,
+              id: anchorEl.id,
+              top: anchorEl.getBoundingClientRect().top,
+              expectStart: win.start - 1,
             };
           }
           extendRef.current = "top";
           setExtending("top");
-          setWindow((w) => {
-            const next = { start: w.start - 1, end: w.end - 1 };
-            winRef.current = next;
-            return next;
-          });
+          setWin((w) => ({ start: w.start - 1, end: w.end }));
+          return;
         }
         if (
           window.innerHeight + window.scrollY >
             document.body.scrollHeight - 500 &&
           extendRef.current === null &&
-          winRef.current.end < maxMonth
+          win.end < maxMonth
         ) {
           extendRef.current = "bottom";
           setExtending("bottom");
-          setWindow((w) => {
-            const next = { start: w.start + 1, end: w.end + 1 };
-            winRef.current = next;
-            return next;
-          });
+          setWin((w) => ({ start: w.start, end: w.end + 1 }));
         }
       });
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [minMonth, maxMonth]);
+  }, [minMonth, maxMonth, win.start, win.end]);
 
   const byDate = React.useMemo(() => {
     const m = new Map<string, DayEntry[]>();
-    for (const e of entries ?? []) {
+    for (const e of view?.entries ?? []) {
       const list = m.get(e.date);
       if (list) list.push(e);
       else m.set(e.date, [e]);
     }
     return m;
-  }, [entries]);
+  }, [view]);
 
   const onToggleDone = React.useCallback(
     (id: Id<"entries">) => {
@@ -576,6 +636,7 @@ function TimelineConnected() {
 
   const header = (
     <div
+      ref={headerRef}
       data-testid="timeline-header"
       className="bg-background/95 sticky top-0 z-20 border-b backdrop-blur"
     >
@@ -687,19 +748,25 @@ function TimelineConnected() {
             </div>
           </PopoverContent>
         </Popover>
-        <button
-          type="button"
-          data-testid="today-btn"
-          onClick={() => jumpToDate(todayKey)}
-          className="bg-secondary rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
-        >
-          Today
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid="today-btn"
+              onClick={() => jumpToDate(todayKey)}
+              className="bg-secondary flex size-8 items-center justify-center rounded-full"
+            >
+              <CalendarDays aria-hidden="true" className="size-4" />
+              <span className="sr-only">Today</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Jump to today</TooltipContent>
+        </Tooltip>
       </div>
     </div>
   );
 
-  if (entries === undefined)
+  if (view === null)
     return (
       <>
         {header}
@@ -708,7 +775,7 @@ function TimelineConnected() {
     );
 
   const months: { idx: number; year: number; month: number }[] = [];
-  for (let i = start; i <= end; i++) {
+  for (let i = view.start; i <= view.end; i++) {
     months.push({ idx: i, year: Math.floor(i / 12), month: i % 12 });
   }
 
@@ -726,7 +793,7 @@ function TimelineConnected() {
     <>
       {header}
       <div data-testid="timeline" className="flex flex-col pb-16">
-      {entries.length === 0 ? (
+      {view.entries.length === 0 ? (
         <div data-testid="timeline-empty" className="px-6 pt-8 pb-2 text-center">
           <h2 className="text-base font-medium">No entries yet</h2>
           <p className="text-muted-foreground mx-auto mt-1 max-w-sm text-sm">
@@ -740,17 +807,24 @@ function TimelineConnected() {
           data-testid="timeline-extending"
           aria-busy="true"
           aria-label="Loading earlier months"
-          className="text-muted-foreground px-6 py-3 text-center text-sm"
+          className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center"
         >
-          Loading earlier months…
+          <p className="bg-secondary text-muted-foreground rounded-full border px-3 py-1 text-xs shadow">
+            Loading earlier months…
+          </p>
         </div>
       ) : null}
       {months.map(({ idx, year, month }) => {
         const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
-        const count = entries.filter((e) => e.date.startsWith(prefix)).length;
+        const count = view.entries.filter((e) => e.date.startsWith(prefix)).length;
         return (
           <React.Fragment key={idx}>
-            <MonthBanner year={year} month={month} count={count} />
+            <MonthBanner
+              year={year}
+              month={month}
+              count={count}
+              first={idx === view.start}
+            />
             {sundaysOfMonth(year, month).map((sun) => {
               const sunKey = isoDay(sun);
               const days = daysOfWeek(sun);
