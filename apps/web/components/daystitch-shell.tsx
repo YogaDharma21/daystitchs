@@ -19,7 +19,7 @@ function ShellLoading() {
     <div
       role="status"
       aria-busy="true"
-      className="mx-auto flex min-h-svh w-full max-w-2xl flex-col"
+      className="mx-auto flex min-h-svh w-full max-w-[1000px] flex-col"
     >
       <p className="sr-only">Loading DayStitch…</p>
       {/* Same sticky header row as the timeline, so nothing moves when the
@@ -55,7 +55,7 @@ function SignedOutGate() {
 
 function AppShell() {
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col">
+    <div className="mx-auto flex min-h-svh w-full max-w-[1000px] flex-col">
       <main className="flex flex-1 flex-col">
         {/* The account menu rides in the timeline's sticky header, next to
             Today, so it stays reachable at any scroll position. */}

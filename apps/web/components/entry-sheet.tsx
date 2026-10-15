@@ -114,7 +114,7 @@ export default function EntrySheet({
       <SheetContent
         side="bottom"
         data-testid="entry-sheet"
-        className="mx-auto w-full max-w-2xl rounded-t-2xl px-6 pt-3 pb-8"
+        className="mx-auto w-full max-w-[1000px] rounded-t-2xl px-6 pt-3 pb-8"
       >
         <div
           aria-hidden="true"

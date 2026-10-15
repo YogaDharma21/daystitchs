@@ -685,7 +685,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
       data-testid="timeline-header"
       className="bg-background/95 sticky top-0 z-20 border-b backdrop-blur"
     >
-      <div className="mx-auto flex w-full max-w-2xl items-center justify-between px-6 py-3">
+      <div className="mx-auto flex w-full max-w-[1000px] items-center justify-between px-6 py-3">
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger asChild>
             <button
