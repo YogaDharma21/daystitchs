@@ -410,11 +410,13 @@ function TimelineConnected() {
   }>({ open: false, date: "", entry: null, preset: "task" });
   const scrolledRef = React.useRef(false);
   const loadedRef = React.useRef(false);
-  const anchorRef = React.useRef<{
-    id: string;
-    top: number;
-    expectStart: number;
-  } | null>(null);
+  // Scroll anchor for the grow-upward list. We record the document offset of
+  // the timeline node closest to the top of the viewport; when a commit changes
+  // that offset (earlier months were prepended), the layout effect below
+  // scrolls by the same amount. Document offsets ignore scrolling, so the
+  // measure is the inserted height alone and any scrolling the user did while
+  // the range query was in flight is preserved.
+  const anchorRef = React.useRef<{ id: string; docTop: number } | null>(null);
   const pendingJump = React.useRef<string | null>(null);
   const chipsRef = React.useRef<HTMLDivElement | null>(null);
   const headerRef = React.useRef<HTMLDivElement | null>(null);
@@ -496,13 +498,18 @@ function TimelineConnected() {
     }
 
     const anchor = anchorRef.current;
-    if (anchor && view.start <= anchor.expectStart) {
-      anchorRef.current = null;
-      const restored = document.getElementById(anchor.id);
-      if (restored) {
-        window.scrollBy(0, restored.getBoundingClientRect().top - anchor.top);
+    if (anchor) {
+      const el = document.getElementById(anchor.id);
+      if (!el) {
+        anchorRef.current = null;
+      } else {
+        const docTop = el.getBoundingClientRect().top + window.scrollY;
+        const shift = docTop - anchor.docTop;
+        if (shift !== 0) {
+          anchor.docTop = docTop;
+          window.scrollBy(0, shift);
+        }
       }
-      return;
     }
 
     if (!scrolledRef.current) {
@@ -551,6 +558,19 @@ function TimelineConnected() {
         const top = topNode();
         const ym = top?.getAttribute?.("data-ym");
         if (ym) setTitle(titleForYm(ym));
+        // Keep the anchor pointed at the node under the header. The offset is
+        // re-read on every tick so the layout effect can tell "content was
+        // inserted above this node" apart from "the user scrolled".
+        // The point just under the header can land on a node without
+        // `data-ym` (empty-state block, gaps); fall back to the first
+        // month-scoped element in the document.
+        const anchorEl = top ?? document.querySelector("[data-ym]");
+        if (anchorEl?.id) {
+          anchorRef.current = {
+            id: anchorEl.id,
+            docTop: anchorEl.getBoundingClientRect().top + window.scrollY,
+          };
+        }
         // One extension per end while a query is in flight (extendRef guard).
         // The requested range only grows; months on screen are never dropped.
         if (
@@ -558,17 +578,6 @@ function TimelineConnected() {
           extendRef.current === null &&
           win.start > minMonth
         ) {
-          // The point just under the header can land on a node without
-          // `data-ym` (empty-state block, gaps); fall back to the first
-          // month-scoped element in the document.
-          const anchorEl = top ?? document.querySelector("[data-ym]");
-          if (anchorEl?.id) {
-            anchorRef.current = {
-              id: anchorEl.id,
-              top: anchorEl.getBoundingClientRect().top,
-              expectStart: win.start - 1,
-            };
-          }
           extendRef.current = "top";
           setExtending("top");
           setWin((w) => ({ start: w.start - 1, end: w.end }));
@@ -792,7 +801,7 @@ function TimelineConnected() {
   return (
     <>
       {header}
-      <div data-testid="timeline" className="flex flex-col pb-16">
+      <div data-testid="timeline" className="flex flex-col pb-16 [overflow-anchor:none]">
       {view.entries.length === 0 ? (
         <div data-testid="timeline-empty" className="px-6 pt-8 pb-2 text-center">
           <h2 className="text-base font-medium">No entries yet</h2>
