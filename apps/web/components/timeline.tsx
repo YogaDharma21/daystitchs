@@ -324,18 +324,54 @@ function DaySection({
   );
 }
 
-function TimelineLoading() {
+function SkeletonBar({ className }: { className: string }) {
+  return <div aria-hidden="true" className={`bg-muted ${className}`} />;
+}
+
+function WeekRowSkeleton() {
+  return (
+    <div className="flex w-full items-center gap-3 px-6 pt-8 pb-1">
+      <SkeletonBar className="h-3 w-20 flex-none rounded-full" />
+      <span className="bg-border h-px flex-1" />
+      <SkeletonBar className="size-3.5 flex-none rounded-full" />
+    </div>
+  );
+}
+
+function DayRowSkeleton() {
+  return (
+    <div className="grid grid-cols-[44px_1fr] gap-2 px-6 pt-5">
+      {/* Mirrors the day column: weekday label, day number, add button. */}
+      <div className="flex flex-col items-center gap-0.5 pt-0.5">
+        <SkeletonBar className="h-2.5 w-8 rounded-full" />
+        <SkeletonBar className="size-9 rounded-full" />
+        <SkeletonBar className="border-border mt-1.5 size-6 rounded-full border" />
+      </div>
+      <SkeletonBar className="mt-1.5 h-4 w-24 rounded-md" />
+    </div>
+  );
+}
+
+// Placeholder for the list area. The boot view starts at today's day row, with
+// the next month's banner just below the fold, so the skeleton mirrors that:
+// week row, day row, week rows, banner, week row.
+export function TimelineLoading() {
   return (
     <div
       data-testid="timeline-loading"
       aria-busy="true"
       aria-label="Loading timeline"
-      className="flex flex-col gap-3 px-6 py-10"
+      className="flex animate-pulse flex-col pt-3 motion-reduce:animate-none"
     >
-      <div className="bg-muted h-24 animate-pulse rounded-xl" />
-      <div className="bg-muted h-16 animate-pulse rounded-xl" />
-      <div className="bg-muted h-16 animate-pulse rounded-xl" />
-      <p className="text-muted-foreground text-center text-sm">Loading timeline…</p>
+      <WeekRowSkeleton />
+      <DayRowSkeleton />
+      <WeekRowSkeleton />
+      <WeekRowSkeleton />
+      <div className="mt-7 flex min-h-[150px] flex-col justify-center gap-3 px-[58px] pt-12 pb-11">
+        <SkeletonBar className="h-3 w-24 rounded-full" />
+        <SkeletonBar className="h-8 w-40 rounded-md" />
+      </div>
+      <WeekRowSkeleton />
     </div>
   );
 }

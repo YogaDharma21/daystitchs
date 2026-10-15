@@ -3,19 +3,35 @@
 import { useAuth } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@workspace/ui/components/button"
-import DaystitchTimeline from "@/components/timeline"
+import DaystitchTimeline, { TimelineLoading } from "@/components/timeline"
+
+function SkeletonShape({ className }: { className: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`bg-muted animate-pulse motion-reduce:animate-none ${className}`}
+    />
+  )
+}
 
 function ShellLoading() {
   return (
     <div
+      role="status"
       aria-busy="true"
-      aria-label="Loading DayStitch"
-      className="flex min-h-svh items-center justify-center p-6"
+      className="mx-auto flex min-h-svh w-full max-w-2xl flex-col"
     >
-      <div className="flex flex-col items-center gap-3">
-        <div className="bg-muted h-8 w-8 animate-pulse rounded-full" />
-        <p className="text-muted-foreground text-sm">Loading DayStitch…</p>
+      <p className="sr-only">Loading DayStitch…</p>
+      {/* Same two header rows as AppShell and the timeline, so nothing moves
+          when the real header takes over. */}
+      <header className="flex items-center justify-end border-b px-6 py-4">
+        <SkeletonShape className="size-8 rounded-full" />
+      </header>
+      <div className="flex items-center justify-between border-b px-6 py-3">
+        <SkeletonShape className="h-7 w-36 rounded-md" />
+        <SkeletonShape className="size-8 rounded-full" />
       </div>
+      <TimelineLoading />
     </div>
   )
 }
