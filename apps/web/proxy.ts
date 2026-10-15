@@ -8,7 +8,7 @@ const hasClerkKey = Boolean(
 
 export default hasClerkKey
   ? clerkMiddleware()
-  : function middleware() {
+  : function proxy() {
       return NextResponse.next()
     }
 
