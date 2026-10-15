@@ -22,17 +22,15 @@ function ShellLoading() {
       className="mx-auto flex min-h-svh w-full max-w-2xl flex-col"
     >
       <p className="sr-only">Loading DayStitch…</p>
-      {/* Same two header rows as AppShell and the timeline, so nothing moves
-          when the real header takes over. */}
-      <header className="flex items-center justify-end border-b px-6 py-4">
-        {/* Clerk's UserButton renders nothing until Clerk is ready, so leave
-            the spot blank and keep the row height. The real circle appears
-            the moment Clerk resolves. */}
-        <span aria-hidden="true" className="size-8" />
-      </header>
+      {/* Same sticky header row as the timeline, so nothing moves when the
+          real header takes over. The account slot stays blank: Clerk's
+          UserButton renders nothing until Clerk is ready. */}
       <div className="flex items-center justify-between border-b px-6 py-3">
         <SkeletonShape className="h-7 w-36 rounded-md" />
-        <SkeletonShape className="size-8 rounded-full" />
+        <div className="flex items-center gap-2">
+          <SkeletonShape className="size-8 rounded-full" />
+          <span aria-hidden="true" className="size-8" />
+        </div>
       </div>
       <TimelineLoading />
     </div>
@@ -58,11 +56,10 @@ function SignedOutGate() {
 function AppShell() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col">
-      <header className="flex items-center justify-end border-b px-6 py-4">
-        <UserButton />
-      </header>
       <main className="flex flex-1 flex-col">
-        <DaystitchTimeline />
+        {/* The account menu rides in the timeline's sticky header, next to
+            Today, so it stays reachable at any scroll position. */}
+        <DaystitchTimeline accountSlot={<UserButton />} />
       </main>
     </div>
   )

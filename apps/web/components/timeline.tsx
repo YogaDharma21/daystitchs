@@ -405,7 +405,7 @@ function MonthChip({
   );
 }
 
-function TimelineConnected() {
+function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
   const todayKey = React.useMemo(() => isoDay(new Date()), []);
   const todayIdx = React.useMemo(() => monthIndex(new Date()), []);
   // Prototype bounds: one full year each side of the boot year.
@@ -793,20 +793,29 @@ function TimelineConnected() {
             </div>
           </PopoverContent>
         </Popover>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              data-testid="today-btn"
-              onClick={() => jumpToDate(todayKey)}
-              className="bg-secondary flex size-8 items-center justify-center rounded-full"
-            >
-              <CalendarDays aria-hidden="true" className="size-4" />
-              <span className="sr-only">Today</span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Jump to today</TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                data-testid="today-btn"
+                onClick={() => jumpToDate(todayKey)}
+                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+              >
+                <CalendarDays aria-hidden="true" className="size-4" />
+                <span className="sr-only">Today</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Jump to today</TooltipContent>
+          </Tooltip>
+          {/* Account menu sits in this sticky row instead of a shell row above
+              the list: the app boots scrolled to today, and the list keeps
+              loading earlier months as you scroll up, so a header above the
+              fold is a long way back. */}
+          <div className="flex size-8 items-center justify-center">
+            {accountSlot}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1011,7 +1020,11 @@ function TimelineConnected() {
   );
 }
 
-export default function Timeline() {
+export default function Timeline({
+  accountSlot,
+}: {
+  accountSlot?: React.ReactNode;
+}) {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
   if (!convexUrl) {
     return (
@@ -1026,5 +1039,5 @@ export default function Timeline() {
       </div>
     );
   }
-  return <TimelineConnected />;
+  return <TimelineConnected accountSlot={accountSlot} />;
 }
