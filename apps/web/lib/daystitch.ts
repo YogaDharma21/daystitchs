@@ -1,9 +1,10 @@
 import { entryDraftError } from "@/convex/entryRules";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export type EntryType = "event" | "task";
 
 export interface DayEntry {
-  _id: string;
+  _id: Id<"entries">;
   userId: string;
   date: string;
   title: string;

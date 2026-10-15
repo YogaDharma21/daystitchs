@@ -28,6 +28,7 @@ import {
   type EntryType,
 } from "@/lib/daystitch";
 import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api";
+import type { Id } from "@/convex/_generated/dataModel";
 import EntrySheet from "@/components/entry-sheet";
 import { EntryTypeChoice } from "@/components/entry-type-choice";
 
@@ -206,7 +207,7 @@ function DaySection({
   day: Date;
   todayKey: string;
   entries: DayEntry[];
-  onToggleDone: (id: string) => void;
+  onToggleDone: (id: Id<"entries">) => void;
   onAdd: (date: string, type: EntryType) => void;
   onOpen: (entry: DayEntry) => void;
 }) {
@@ -540,7 +541,7 @@ function TimelineConnected() {
   }, [entries]);
 
   const onToggleDone = React.useCallback(
-    (id: string) => {
+    (id: Id<"entries">) => {
       void toggleDone({ id });
     },
     [toggleDone],

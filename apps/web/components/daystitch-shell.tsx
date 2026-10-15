@@ -1,6 +1,6 @@
 "use client"
 
-import { ClerkLoaded, ClerkLoading, SignedIn, SignedOut } from "@clerk/nextjs"
+import { useAuth } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
 import { Button } from "@workspace/ui/components/button"
 import DaystitchTimeline from "@/components/timeline"
@@ -50,20 +50,16 @@ function AppShell() {
   )
 }
 
+// Clerk Core 3 removed the <SignedIn>/<SignedOut>/<ClerkLoaded>/<ClerkLoading>
+// control components, so the shell branches on useAuth directly. Same three
+// states: loading skeleton, sign-in-only gate, signed-in app.
 export default function DaystitchShell() {
-  return (
-    <>
-      <ClerkLoading>
-        <ShellLoading />
-      </ClerkLoading>
-      <ClerkLoaded>
-        <SignedOut>
-          <SignedOutGate />
-        </SignedOut>
-        <SignedIn>
-          <AppShell />
-        </SignedIn>
-      </ClerkLoaded>
-    </>
-  )
+  const { isLoaded, isSignedIn } = useAuth()
+  if (!isLoaded) {
+    return <ShellLoading />
+  }
+  if (!isSignedIn) {
+    return <SignedOutGate />
+  }
+  return <AppShell />
 }
