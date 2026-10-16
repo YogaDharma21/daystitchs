@@ -252,17 +252,25 @@ function DaySection({
       data-date={key}
       data-ym={`${day.getFullYear()}-${day.getMonth()}`}
       id={`d-${key}`}
-      className="grid scroll-mt-20 grid-cols-[44px_1fr] gap-2 px-6 pt-5"
+      className="relative grid scroll-mt-20 grid-cols-[44px_1fr] gap-2 px-6 pt-5"
     >
-      <div className="flex flex-col items-center gap-0.5 pt-0.5">
-        <span className="text-muted-foreground text-[10px] font-bold tracking-[0.14em] uppercase">
+      {/* Connector line down the day column, like the original day list. One
+          segment per day, so the segments join up; the head sits above it and
+          its own pieces mask it, which leaves the line showing in the gaps.
+          Left edge 24px (px-6) + half of the 44px column. */}
+      <span
+        aria-hidden="true"
+        className="bg-foreground/14 pointer-events-none absolute top-0 bottom-0 left-[45px] w-px"
+      />
+      <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
+        <span className="bg-background text-muted-foreground text-[10px] font-bold tracking-[0.14em] uppercase">
           {dow}
         </span>
         <span
           data-testid="day-number"
           data-today={key === todayKey ? "true" : "false"}
           className={`flex size-9 items-center justify-center rounded-full text-lg font-bold tabular-nums ${
-            key === todayKey ? "bg-primary text-primary-foreground" : ""
+            key === todayKey ? "bg-primary text-primary-foreground" : "bg-background"
           }`}
         >
           {day.getDate()}
@@ -274,7 +282,7 @@ function DaySection({
           aria-label={`Add on ${key}`}
           aria-expanded={chooserOpen}
           onClick={() => setChooserOpen((v) => !v)}
-          className="border-border text-muted-foreground mt-1.5 flex size-6 items-center justify-center rounded-full border text-sm leading-none"
+          className="bg-background border-border text-muted-foreground mt-1.5 flex size-6 items-center justify-center rounded-full border text-sm leading-none"
         >
           {chooserOpen ? "×" : "+"}
         </button>
@@ -340,12 +348,19 @@ function WeekRowSkeleton() {
 
 function DayRowSkeleton() {
   return (
-    <div className="grid grid-cols-[44px_1fr] gap-2 px-6 pt-5">
+    <div className="relative grid grid-cols-[44px_1fr] gap-2 px-6 pt-5">
+      <span
+        aria-hidden="true"
+        className="bg-foreground/14 pointer-events-none absolute top-0 bottom-0 left-[45px] w-px"
+      />
       {/* Mirrors the day column: weekday label, day number, add button. */}
-      <div className="flex flex-col items-center gap-0.5 pt-0.5">
+      <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
         <SkeletonBar className="h-2.5 w-8 rounded-full" />
         <SkeletonBar className="size-9 rounded-full" />
-        <SkeletonBar className="border-border mt-1.5 size-6 rounded-full border" />
+        <span
+          aria-hidden="true"
+          className="bg-background border-border mt-1.5 size-6 rounded-full border"
+        />
       </div>
       <SkeletonBar className="mt-1.5 h-4 w-24 rounded-md" />
     </div>
@@ -453,7 +468,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
   // measure is the inserted height alone and any scrolling the user did while
   // the range query was in flight is preserved.
   const anchorRef = React.useRef<{ id: string; docTop: number } | null>(null);
-  const pendingJump = React.useRef<string | null>(null);
+  const pendingJump = React.useRef<{ key: string; smooth: boolean } | null>(null);
   const chipsRef = React.useRef<HTMLDivElement | null>(null);
   const headerRef = React.useRef<HTMLDivElement | null>(null);
   // In-flight guard: one scroll gesture adds one month per end. `extending`
@@ -480,12 +495,20 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     setExtending(null);
   }, [entries, win]);
 
-  const scrollToKey = React.useCallback((key: string) => {
+  const scrollToKey = React.useCallback((key: string, smooth = false) => {
     const p = key.split("-");
     const el =
       document.getElementById(`d-${key}`) ??
       document.getElementById(`m-${Number(p[0])}-${Number(p[1]) - 1}`);
-    el?.scrollIntoView({ block: "start" });
+    // User jumps glide like the original; the boot jump and the compensation
+    // pass stay instant. Reduced motion keeps the instant jump.
+    const animate =
+      smooth &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el?.scrollIntoView({
+      behavior: animate ? "smooth" : "auto",
+      block: "start",
+    });
     const holder = el?.closest?.("[data-ym]") ?? el;
     const ym = holder?.getAttribute?.("data-ym");
     if (ym) setTitle(titleForYm(ym));
@@ -501,17 +524,17 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         prev[sunKey] ? prev : { ...prev, [sunKey]: true },
       );
       setPickerOpen(false);
-      pendingJump.current = key;
+      pendingJump.current = { key, smooth: true };
       // If the target is already mounted, every state update above can bail
       // out and no commit would consume the pending jump. Try once on the
       // next frame; the layout effect below wins when data is still loading.
       requestAnimationFrame(() => {
         if (
-          pendingJump.current === key &&
+          pendingJump.current?.key === key &&
           document.getElementById(`d-${key}`)
         ) {
           pendingJump.current = null;
-          scrollToKey(key);
+          scrollToKey(key, true);
         }
       });
     },
@@ -527,9 +550,9 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
 
     const jump = pendingJump.current;
     if (jump) {
-      if (!document.getElementById(`d-${jump}`)) return;
+      if (!document.getElementById(`d-${jump.key}`)) return;
       pendingJump.current = null;
-      scrollToKey(jump);
+      scrollToKey(jump.key, jump.smooth);
       return;
     }
 
