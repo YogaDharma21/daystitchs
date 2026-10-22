@@ -2,14 +2,16 @@
 
 import { useAuth } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
+import { ArrowRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import DaystitchTimeline, { TimelineLoading } from "@/components/timeline"
+import LandingPage from "@/components/landing-page"
 
 function SkeletonShape({ className }: { className: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`bg-muted animate-pulse motion-reduce:animate-none ${className}`}
+      className={`animate-pulse bg-muted motion-reduce:animate-none ${className}`}
     />
   )
 }
@@ -39,17 +41,30 @@ function ShellLoading() {
 
 function SignedOutGate() {
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
-        <h1 className="text-xl font-medium">DayStitch</h1>
-        <p className="text-muted-foreground text-sm">
-          Sign in to stitch your days together.
-        </p>
+    <LandingPage
+      signInTrigger={
         <SignInButton mode="modal">
-          <Button size="lg">Sign in</Button>
+          <Button
+            size="lg"
+            className="group flex h-10 items-center gap-2 rounded-full px-5 text-sm font-medium shadow-md shadow-primary/20 transition-all hover:shadow-primary/30"
+          >
+            <span>Sign in</span>
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Button>
         </SignInButton>
-      </div>
-    </div>
+      }
+      heroSignInTrigger={
+        <SignInButton mode="modal">
+          <Button
+            size="lg"
+            className="group flex h-12 items-center gap-2.5 rounded-full px-8 text-base font-semibold shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] hover:shadow-primary/35 active:scale-[0.98]"
+          >
+            <span>Start Stitching Your Days</span>
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </SignInButton>
+      }
+    />
   )
 }
 
