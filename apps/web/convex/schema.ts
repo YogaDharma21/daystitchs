@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from "convex/server"
+import { v } from "convex/values"
 
 export default defineSchema({
   entries: defineTable({
@@ -13,5 +13,18 @@ export default defineSchema({
     loc: v.optional(v.string()),
     detail: v.optional(v.string()),
     done: v.optional(v.boolean()),
-  }).index("by_userId_and_date", ["userId", "date"]),
-});
+  })
+    .index("by_userId_and_date", ["userId", "date"])
+    .searchIndex("search_title", {
+      searchField: "title",
+      filterFields: ["userId"],
+    })
+    .searchIndex("search_detail", {
+      searchField: "detail",
+      filterFields: ["userId"],
+    })
+    .searchIndex("search_loc", {
+      searchField: "loc",
+      filterFields: ["userId"],
+    }),
+})
