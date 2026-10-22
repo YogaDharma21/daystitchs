@@ -4,17 +4,12 @@ import * as React from "react"
 import {
   ArrowRight,
   Calendar,
-  CalendarDays,
   Check,
-  CheckCircle2,
   Clock,
-  Compass,
   Info,
-  Layers,
   MapPin,
   Plus,
   Sparkles,
-  Zap,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "cn"
@@ -42,7 +37,6 @@ export function DayStitchBrandMark({ className }: { className?: string }) {
         strokeLinejoin="round"
         className="size-5"
       >
-        {/* Continuous stitch curve with node points */}
         <path d="M4 19L9 14M15 8L20 3" />
         <path d="M8 20l8-8" strokeDasharray="2 3" />
         <circle cx="9" cy="14" r="2" fill="currentColor" />
@@ -59,7 +53,7 @@ export default function LandingPage({
 }: LandingPageProps) {
   const [showConfigModal, setShowConfigModal] = React.useState(false)
 
-  // Interactive mockup tasks state so the user can interactively toggle them on the landing page!
+  // Interactive mockup tasks state so the user can interactively toggle them
   const [tasks, setTasks] = React.useState([
     {
       id: "t1",
@@ -143,7 +137,6 @@ export default function LandingPage({
         <div className="absolute -top-40 left-1/2 size-[650px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px]" />
         <div className="absolute top-[40%] -right-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute top-[60%] -left-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
-        {/* Subtle grid pattern */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:4rem_4rem]" />
       </div>
 
@@ -212,47 +205,19 @@ export default function LandingPage({
 
       {/* Header Navigation */}
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <DayStitchBrandMark />
-            <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold tracking-tight">
-                DayStitch
-              </span>
-              <span className="rounded-full border border-border/60 bg-muted/60 px-2 py-0.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
-                Timeline
-              </span>
-            </div>
+            <span className="text-lg font-bold tracking-tight">DayStitch</span>
           </div>
-
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground sm:flex">
-            <a
-              href="#preview"
-              className="transition-colors hover:text-foreground"
-            >
-              Preview
-            </a>
-            <a
-              href="#features"
-              className="transition-colors hover:text-foreground"
-            >
-              Features
-            </a>
-            <a
-              href="#difference"
-              className="transition-colors hover:text-foreground"
-            >
-              Why DayStitch
-            </a>
-          </nav>
 
           <div className="flex items-center gap-3">{headerAction}</div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-6 pt-16 pb-12 sm:pt-24 sm:pb-20">
-        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+      <section className="relative px-6 pt-16 pb-12 sm:pt-20 sm:pb-16">
+        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           {/* Top pill badge */}
           <div className="mb-6 inline-flex animate-in items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary shadow-sm backdrop-blur-sm duration-700 fade-in slide-in-from-bottom-2">
             <Sparkles className="size-3.5 text-primary" />
@@ -260,7 +225,7 @@ export default function LandingPage({
           </div>
 
           {/* Hero title */}
-          <h1 className="text-4xl leading-[1.08] font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Stitch your days together,{" "}
             <span className="mt-1 block bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-transparent sm:mt-2">
               without the clutter.
@@ -268,58 +233,20 @@ export default function LandingPage({
           </h1>
 
           {/* Subtitle */}
-          <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
             Calendars isolate your schedule into fragmented boxes. Todo lists
             lose time context. DayStitch weaves your tasks, events, and focus
-            into one continuous, beautiful stream.
+            into one continuous stream.
           </p>
 
-          {/* Action CTAs */}
-          <div className="mt-8 flex flex-col items-center gap-3.5 sm:flex-row">
-            {heroAction}
-            <a
-              href="#preview"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-border/80 bg-secondary/40 px-6 text-sm font-medium text-foreground transition-all hover:border-border hover:bg-secondary"
-            >
-              See Interactive Preview
-            </a>
-          </div>
-
-          {/* Vibe highlights */}
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 text-xs font-medium text-muted-foreground/80 sm:gap-10">
-            <div className="flex items-center gap-2">
-              <Zap className="size-4 text-primary" />
-              <span>Zero-friction logging</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarDays className="size-4 text-primary" />
-              <span>One unified timeline</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Compass className="size-4 text-primary" />
-              <span>Instant month & date jump</span>
-            </div>
-          </div>
+          {/* Primary Action CTA */}
+          <div className="mt-8 flex justify-center">{heroAction}</div>
         </div>
       </section>
 
-      {/* Interactive Mockup / Timeline Preview Section */}
-      <section id="preview" className="px-6 py-12 sm:py-16">
+      {/* Timeline Preview Showcase */}
+      <section className="px-6 pb-20 sm:pb-28">
         <div className="mx-auto max-w-4xl">
-          <div className="mb-6 flex flex-col justify-between gap-3 text-left sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">
-                Live Interface Preview
-              </p>
-              <h2 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
-                The flow of time, uninterrupted
-              </h2>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Tip: Click any task below to toggle completion
-            </p>
-          </div>
-
           {/* App Window Frame Mockup */}
           <div className="relative rounded-2xl border border-border/80 bg-card/60 p-1 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
             {/* Window bar */}
@@ -475,164 +402,11 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* Core Features Grid */}
-      <section
-        id="features"
-        className="border-t border-border/40 bg-muted/20 px-6 py-16 sm:py-24"
-      >
-        <div className="mx-auto max-w-5xl">
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">
-              Thoughtful Design
-            </p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-              Everything in harmony. Nothing in your way.
-            </h2>
-            <p className="mt-4 text-sm text-muted-foreground sm:text-base">
-              Built from first principles for people who want to plan and
-              reflect on their days without cognitive fatigue.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Feature 1 */}
-            <div className="relative rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-              <div className="mb-5 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Layers className="size-5" />
-              </div>
-              <h3 className="text-lg font-bold">Continuous Stream</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Scroll naturally through past, present, and future days. No
-                clicking next-week arrows, no broken mental models.
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="relative rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-              <div className="mb-5 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <CheckCircle2 className="size-5" />
-              </div>
-              <h3 className="text-lg font-bold">Unified Agenda</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Checkboxes for your tasks, scheduled times for your meetings,
-                and notes for your thoughts—all woven into the same line.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="relative rounded-2xl border border-border/60 bg-card p-6 shadow-sm transition-all hover:border-primary/40 hover:shadow-md">
-              <div className="mb-5 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Compass className="size-5" />
-              </div>
-              <h3 className="text-lg font-bold">Instant Navigation</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                Jump across months and years in a single click with the
-                interactive month grid, then snap back to Today in an instant.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The Difference Section */}
-      <section id="difference" className="px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-3xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-8 shadow-xl backdrop-blur-sm sm:p-12">
-            <div className="mx-auto mb-10 max-w-2xl text-center">
-              <p className="text-xs font-bold tracking-[0.14em] text-primary uppercase">
-                A Clearer Perspective
-              </p>
-              <h2 className="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
-                Traditional Tools vs. DayStitch
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* The Old Way */}
-              <div className="space-y-4 rounded-2xl border border-border/40 bg-secondary/30 p-6">
-                <div className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                  The Fragmented Way
-                </div>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-bold text-destructive">&times;</span>
-                    <span>
-                      Separate calendar app and separate todo list app
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-bold text-destructive">&times;</span>
-                    <span>Switching between day, week, and month screens</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-bold text-destructive">&times;</span>
-                    <span>
-                      Rigid 15-minute grid blocks that create visual stress
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="font-bold text-destructive">&times;</span>
-                    <span>Complex forms to add a simple 10-minute task</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* The DayStitch Way */}
-              <div className="space-y-4 rounded-2xl border border-primary/40 bg-primary/[0.06] p-6">
-                <div className="text-xs font-bold tracking-wider text-primary uppercase">
-                  The DayStitch Way
-                </div>
-                <ul className="space-y-3 text-sm text-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 size-4 flex-none text-primary" />
-                    <span>One unified stream for all tasks and events</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 size-4 flex-none text-primary" />
-                    <span>Fluid continuous scroll across your days</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 size-4 flex-none text-primary" />
-                    <span>
-                      Clean aesthetic designed for calm and deep focus
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="mt-0.5 size-4 flex-none text-primary" />
-                    <span>
-                      Lightning fast capture with optional time & notes
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final Call to Action */}
-      <section className="border-t border-border/40 px-6 py-16 text-center sm:py-24">
-        <div className="mx-auto max-w-2xl space-y-6">
-          <DayStitchBrandMark className="mx-auto size-12" />
-          <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Ready to stitch your days together?
-          </h2>
-          <p className="mx-auto max-w-xl text-sm text-muted-foreground sm:text-base">
-            Experience the calm of a continuous daily timeline. Sign in to start
-            organizing your schedule today.
-          </p>
-          <div className="flex justify-center pt-2">{heroAction}</div>
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-border/40 px-6 py-8 text-center text-xs text-muted-foreground">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">DayStitch</span>
-            <span>&middot; Continuous Daily Agenda</span>
-          </div>
-          <div>Built with craft for daily clarity.</div>
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
+          <div className="font-semibold text-foreground">DayStitch</div>
+          <div>&copy; {new Date().getFullYear()} DayStitch</div>
         </div>
       </footer>
     </div>
