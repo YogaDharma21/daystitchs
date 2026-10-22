@@ -4,12 +4,15 @@ import * as React from "react"
 import {
   ArrowRight,
   Calendar,
+  CalendarDays,
   Check,
+  ChevronDown,
   Clock,
   Info,
+  Lock,
   MapPin,
   Plus,
-  Sparkles,
+  User,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { cn } from "cn"
@@ -18,32 +21,6 @@ interface LandingPageProps {
   signInTrigger?: React.ReactNode
   heroSignInTrigger?: React.ReactNode
   isConfigMissing?: boolean
-}
-
-export function DayStitchBrandMark({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "relative flex size-9 items-center justify-center rounded-xl bg-gradient-to-tr from-primary/90 to-primary text-primary-foreground shadow-md shadow-primary/20",
-        className
-      )}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="size-5"
-      >
-        <path d="M4 19L9 14M15 8L20 3" />
-        <path d="M8 20l8-8" strokeDasharray="2 3" />
-        <circle cx="9" cy="14" r="2" fill="currentColor" />
-        <circle cx="15" cy="8" r="2" fill="currentColor" />
-      </svg>
-    </div>
-  )
 }
 
 export default function LandingPage({
@@ -207,7 +184,11 @@ export default function LandingPage({
       <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <DayStitchBrandMark />
+            <img
+              src="/icon-192.png"
+              alt="DayStitch"
+              className="size-8 rounded-lg shadow-sm"
+            />
             <span className="text-lg font-bold tracking-tight">DayStitch</span>
           </div>
 
@@ -216,14 +197,8 @@ export default function LandingPage({
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-6 pt-16 pb-12 sm:pt-20 sm:pb-16">
+      <section className="relative px-6 pt-20 pb-14 sm:pt-28 sm:pb-20">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          {/* Top pill badge */}
-          <div className="mb-6 inline-flex animate-in items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary shadow-sm backdrop-blur-sm duration-700 fade-in slide-in-from-bottom-2">
-            <Sparkles className="size-3.5 text-primary" />
-            <span>The Continuous Daily Agenda</span>
-          </div>
-
           {/* Hero title */}
           <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
             Stitch your days together,{" "}
@@ -248,28 +223,44 @@ export default function LandingPage({
       <section className="px-6 pb-20 sm:pb-28">
         <div className="mx-auto max-w-4xl">
           {/* App Window Frame Mockup */}
-          <div className="relative rounded-2xl border border-border/80 bg-card/60 p-1 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
-            {/* Window bar */}
-            <div className="flex items-center justify-between rounded-t-xl border-b border-border/60 bg-muted/30 px-4 py-3">
+          <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/60 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
+            {/* Native Window Titlebar */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-border/60 bg-muted/40 px-4 py-2.5">
+              {/* Traffic light window controls */}
               <div className="flex items-center gap-2">
-                <span className="size-3 rounded-full bg-red-500/80" />
-                <span className="size-3 rounded-full bg-yellow-500/80" />
-                <span className="size-3 rounded-full bg-green-500/80" />
-                <span className="ml-2 hidden font-mono text-xs text-muted-foreground sm:inline">
-                  daystitch.app
-                </span>
+                <span className="size-3 rounded-full border border-[#e0443e]/50 bg-[#ff5f56]/80" />
+                <span className="size-3 rounded-full border border-[#dea123]/50 bg-[#ffbd2e]/80" />
+                <span className="size-3 rounded-full border border-[#1aab29]/50 bg-[#27c93f]/80" />
+              </div>
+
+              {/* Centered clean browser address pill */}
+              <div className="flex h-7 items-center gap-1.5 rounded-md border border-border/60 bg-background/50 px-3 font-mono text-xs text-muted-foreground">
+                <Lock className="size-3 text-muted-foreground/60" />
+                <span>daystitch.app</span>
+              </div>
+
+              {/* Right empty spacer for balance */}
+              <div className="flex justify-end" />
+            </div>
+
+            {/* In-app sticky header mockup matching real DayStitch shell */}
+            <div className="flex items-center justify-between border-b border-border/50 bg-background/80 px-6 py-3">
+              <div className="flex items-center gap-1 text-sm font-bold tracking-tight">
+                <span>October 2026</span>
+                <ChevronDown className="size-4 text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <span className="rounded-md border border-border/60 bg-secondary/80 px-2.5 py-1 text-xs font-semibold">
-                  Today · Oct 22
-                </span>
-                <span className="flex size-7 items-center justify-center rounded-full border border-primary/40 bg-primary/20 text-xs font-semibold text-primary">
-                  YD
-                </span>
+                <div className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-secondary/80 px-3 text-xs font-semibold text-foreground shadow-xs">
+                  <CalendarDays className="size-3.5 text-primary" />
+                  <span>Today</span>
+                </div>
+                <div className="flex size-8 items-center justify-center rounded-full border border-border/60 bg-secondary/80 text-muted-foreground">
+                  <User className="size-4" />
+                </div>
               </div>
             </div>
 
-            {/* Inner Timeline Simulator */}
+            {/* Inner Timeline Content */}
             <div className="space-y-6 p-4 sm:p-8">
               {/* Month Banner */}
               <div className="border-b border-border/40 pb-4">
@@ -405,7 +396,14 @@ export default function LandingPage({
       {/* Footer */}
       <footer className="border-t border-border/40 px-6 py-8 text-center text-xs text-muted-foreground">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="font-semibold text-foreground">DayStitch</div>
+          <div className="flex items-center gap-2 font-semibold text-foreground">
+            <img
+              src="/icon-192.png"
+              alt="DayStitch"
+              className="size-5 rounded"
+            />
+            <span>DayStitch</span>
+          </div>
           <div>&copy; {new Date().getFullYear()} DayStitch</div>
         </div>
       </footer>
