@@ -9,7 +9,7 @@ function SkeletonShape({ className }: { className: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`bg-muted animate-pulse motion-reduce:animate-none ${className}`}
+      className={`animate-pulse bg-muted motion-reduce:animate-none ${className}`}
     />
   )
 }
@@ -23,11 +23,12 @@ function ShellLoading() {
     >
       <p className="sr-only">Loading DayStitch…</p>
       {/* Same sticky header row as the timeline, so nothing moves when the
-          real header takes over. Both right-hand circles get a gray stand-in:
-          Clerk's UserButton renders nothing until Clerk is ready. */}
+          real header takes over. Right-hand circles get gray stand-ins:
+          Search, Today, and Clerk's UserButton. */}
       <div className="flex items-center justify-between border-b px-6 py-3">
         <SkeletonShape className="h-7 w-36 rounded-md" />
         <div className="flex items-center gap-2">
+          <SkeletonShape className="size-8 rounded-full" />
           <SkeletonShape className="size-8 rounded-full" />
           <SkeletonShape className="size-8 rounded-full" />
         </div>
@@ -42,7 +43,7 @@ function SignedOutGate() {
     <div className="flex min-h-svh items-center justify-center p-6">
       <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
         <h1 className="text-xl font-medium">DayStitch</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Sign in to stitch your days together.
         </p>
         <SignInButton mode="modal">
