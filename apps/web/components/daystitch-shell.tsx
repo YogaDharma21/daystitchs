@@ -1,5 +1,6 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
 import { ArrowRight } from "lucide-react"
@@ -81,16 +82,49 @@ function AppShell() {
   )
 }
 
+function checkHasSession(): boolean {
+  if (typeof document === "undefined") {
+    return false
+  }
+  const cookies = document.cookie
+  if (!cookies) {
+    return false
+  }
+  const uatMatch = cookies.match(/(?:^|;\s*)__client_uat\s*=\s*([^;]+)/)
+  if (uatMatch) {
+    const val = uatMatch[1]
+    if (val === "0" || val === "") {
+      return false
+    }
+    return true
+  }
+  return /(?:^|;\s*)__session\s*=/.test(cookies)
+}
+
+const emptySubscribe = () => () => {}
+
+function useHasSessionCookie() {
+  return useSyncExternalStore(emptySubscribe, checkHasSession, () => false)
+}
+
 // Clerk Core 3 removed the <SignedIn>/<SignedOut>/<ClerkLoaded>/<ClerkLoading>
-// control components, so the shell branches on useAuth directly. Same three
-// states: loading skeleton, sign-in-only gate, signed-in app.
+// control components, so the shell branches on useAuth directly.
 export default function DaystitchShell() {
   const { isLoaded, isSignedIn } = useAuth()
+  const hasSession = useHasSessionCookie()
+
   if (!isLoaded) {
+    // If the user has not logged in (no session cookie), do not show the main
+    // page skeleton; show the landing page directly.
+    if (!hasSession) {
+      return <SignedOutGate />
+    }
     return <ShellLoading />
   }
+
   if (!isSignedIn) {
     return <SignedOutGate />
   }
+
   return <AppShell />
 }
