@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, type LayoutChangeEvent } from "react-native";
+import { View, Text, Pressable, type LayoutChangeEvent } from "react-native";
 import { isoDay, sortEntries, type DayEntry } from "../../lib/daystitch";
 import { EventCard } from "./event-card";
 import { TaskCard } from "./task-card";
@@ -10,6 +10,7 @@ interface DaySectionProps {
   entries: DayEntry[];
   onToggleDone?: (id: string) => void;
   onOpenEntry?: (entry: DayEntry) => void;
+  onAddEntry?: (date: string) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
 }
 
@@ -19,6 +20,7 @@ export function DaySection({
   entries,
   onToggleDone,
   onOpenEntry,
+  onAddEntry,
   onLayout,
 }: DaySectionProps) {
   const key = isoDay(day);
@@ -43,14 +45,25 @@ export function DaySection({
           </Text>
         </View>
 
-        {isToday ? (
-          <View
-            testID="today-indicator"
-            className="rounded-full bg-blue-600 px-2.5 py-0.5"
+        <View className="flex-row items-center gap-2">
+          {isToday ? (
+            <View
+              testID="today-indicator"
+              className="rounded-full bg-blue-600 px-2.5 py-0.5"
+            >
+              <Text className="text-xs font-bold text-white">Today</Text>
+            </View>
+          ) : null}
+          <Pressable
+            testID="add-entry-button"
+            onPress={() => onAddEntry?.(key)}
+            accessibilityRole="button"
+            accessibilityLabel={`Add entry for ${weekday} ${dayOfMonth}`}
+            className="h-7 w-7 items-center justify-center rounded-full bg-neutral-800 active:bg-neutral-700"
           >
-            <Text className="text-xs font-bold text-white">Today</Text>
-          </View>
-        ) : null}
+            <Text className="text-sm font-bold text-neutral-300">+</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View className="flex-col">
