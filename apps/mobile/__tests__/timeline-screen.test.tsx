@@ -334,6 +334,12 @@ describe("TimelineScreen", () => {
       fireEvent.press(deleteBtn);
     });
 
+    expect(mockRemove).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-delete-confirm"));
+    });
+
     expect(mockRemove).toHaveBeenCalledWith({ id: "e1" });
   });
 

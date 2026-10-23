@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { titleForYm } from "../../lib/daystitch";
 
 interface MonthBannerProps {
   year: number;
@@ -9,8 +8,10 @@ interface MonthBannerProps {
 }
 
 export function MonthBanner({ year, month, count }: MonthBannerProps) {
-  const ym = `${year}-${month}`;
-  const title = titleForYm(ym);
+  const title = new Date(year, month, 1).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
   const countLabel = `${count} ${count === 1 ? "entry" : "entries"}`;
 
   return (

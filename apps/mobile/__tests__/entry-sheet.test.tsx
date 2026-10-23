@@ -210,7 +210,7 @@ describe("EntrySheet", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("fires removeEntryMutation when clicking delete in edit mode", async () => {
+  it("requires confirmation before executing delete in edit mode", async () => {
     const entry: DayEntry = {
       _id: "e1",
       userId: "u1",
@@ -235,8 +235,51 @@ describe("EntrySheet", () => {
       fireEvent.press(deleteBtn);
     });
 
+    // Confirmation must be shown before any mutation is fired
+    expect(mockRemove).not.toHaveBeenCalled();
+    expect(screen.getByTestId("entry-delete-confirm")).toBeTruthy();
+    expect(screen.getByTestId("entry-delete-cancel")).toBeTruthy();
+
+    // Confirm deletion
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-delete-confirm"));
+    });
+
     expect(mockRemove).toHaveBeenCalledWith({ id: "e1" });
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("cancels deletion when clicking cancel in confirmation state", async () => {
+    const entry: DayEntry = {
+      _id: "e1",
+      userId: "u1",
+      date: "2026-10-23",
+      title: "Design Review",
+      type: "event",
+    };
+
+    await render(
+      <EntrySheet
+        open={true}
+        onClose={onClose}
+        date="2026-10-23"
+        entry={entry}
+      />
+    );
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-delete"));
+    });
+
+    expect(screen.getByTestId("entry-delete-cancel")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-delete-cancel"));
+    });
+
+    expect(mockRemove).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("entry-delete-confirm")).toBeNull();
+    expect(screen.getByTestId("entry-delete")).toBeTruthy();
   });
 
   it("calls onClose when cancel is pressed", async () => {

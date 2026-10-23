@@ -1,16 +1,32 @@
 import React from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { useConvexAuth } from "convex/react";
-import { useUser, useClerk } from "@clerk/expo";
+import { useUser, useClerk, useSignIn } from "@clerk/expo";
 
 interface AuthGateProps {
   children?: React.ReactNode;
+  onSignIn?: () => void;
 }
 
-export function AuthGate({ children }: AuthGateProps) {
+export function AuthGate({ children, onSignIn }: AuthGateProps) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const signInResult = useSignIn() as unknown as { isLoaded?: boolean; signIn?: { create: (opts: unknown) => Promise<unknown> } };
+  const { signIn, isLoaded } = signInResult;
+
+  const handleSignIn = () => {
+    if (onSignIn) {
+      onSignIn();
+      return;
+    }
+    // ponytail: basic Clerk sign-in trigger; upgrade to full OAuth sheet in Phase 2.
+    if (isLoaded && signIn) {
+      void signIn.create({ identifier: "" }).catch(() => {});
+      return;
+    }
+    Alert.alert("Sign In", "Sign in with Clerk");
+  };
 
   if (isLoading) {
     return (
@@ -22,7 +38,6 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   if (!isAuthenticated) {
-    // ponytail: basic placeholder sign-in trigger; upgrade to full Clerk OAuth modal sheet in Phase 2.
     return (
       <View className="flex-1 items-center justify-center bg-black p-6" testID="sign-in-view">
         <View className="w-full max-w-sm rounded-2xl border border-neutral-800 bg-neutral-900/80 p-8 items-center shadow-lg">
@@ -32,6 +47,7 @@ export function AuthGate({ children }: AuthGateProps) {
           </Text>
           <Pressable
             testID="sign-in-button"
+            onPress={handleSignIn}
             className="mt-6 w-full rounded-xl bg-white py-3.5 items-center active:opacity-90"
             accessibilityRole="button"
             accessibilityLabel="Sign In"

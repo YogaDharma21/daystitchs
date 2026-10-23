@@ -164,11 +164,12 @@ export function daysOfWeek(sun: Date): Date[] {
 
 export function sundaysOfMonth(year: number, month: number): Date[] {
   const out: Date[] = [];
-  const n = new Date(year, month + 1, 0).getDate();
-  for (let s = 1; s <= n; s++) {
-    const d = new Date(year, month, s);
-    if (d.getDay() !== 0) continue;
-    out.push(d);
+  const firstSun = sundayOf(new Date(year, month, 1));
+  const lastDay = new Date(year, month + 1, 0);
+  const cur = new Date(firstSun);
+  while (cur <= lastDay) {
+    out.push(new Date(cur));
+    cur.setDate(cur.getDate() + 7);
   }
   return out;
 }
