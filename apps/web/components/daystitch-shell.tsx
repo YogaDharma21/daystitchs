@@ -1,9 +1,12 @@
 "use client"
 
+import { useSyncExternalStore } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { SignInButton, UserButton } from "@clerk/nextjs"
+import { ArrowRight } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import DaystitchTimeline, { TimelineLoading } from "@/components/timeline"
+import LandingPage from "@/components/landing-page"
 
 function SkeletonShape({ className }: { className: string }) {
   return (
@@ -40,17 +43,30 @@ function ShellLoading() {
 
 function SignedOutGate() {
   return (
-    <div className="flex min-h-svh items-center justify-center p-6">
-      <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
-        <h1 className="text-xl font-medium">DayStitch</h1>
-        <p className="text-sm text-muted-foreground">
-          Sign in to stitch your days together.
-        </p>
+    <LandingPage
+      signInTrigger={
         <SignInButton mode="modal">
-          <Button size="lg">Sign in</Button>
+          <Button
+            size="lg"
+            className="group flex h-10 items-center gap-2 rounded-full px-5 text-sm font-medium shadow-md shadow-primary/20 transition-all hover:shadow-primary/30"
+          >
+            <span>Sign in</span>
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+          </Button>
         </SignInButton>
-      </div>
-    </div>
+      }
+      heroSignInTrigger={
+        <SignInButton mode="modal">
+          <Button
+            size="lg"
+            className="group flex h-12 items-center gap-2.5 rounded-full px-8 text-base font-semibold shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] hover:shadow-primary/35 active:scale-[0.98]"
+          >
+            <span>Start Stitching Your Days</span>
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+          </Button>
+        </SignInButton>
+      }
+    />
   )
 }
 
@@ -66,16 +82,49 @@ function AppShell() {
   )
 }
 
+function checkHasSession(): boolean {
+  if (typeof document === "undefined") {
+    return false
+  }
+  const cookies = document.cookie
+  if (!cookies) {
+    return false
+  }
+  const uatMatch = cookies.match(/(?:^|;\s*)__client_uat\s*=\s*([^;]+)/)
+  if (uatMatch) {
+    const val = uatMatch[1]
+    if (val === "0" || val === "") {
+      return false
+    }
+    return true
+  }
+  return /(?:^|;\s*)__session\s*=/.test(cookies)
+}
+
+const emptySubscribe = () => () => {}
+
+function useHasSessionCookie() {
+  return useSyncExternalStore(emptySubscribe, checkHasSession, () => false)
+}
+
 // Clerk Core 3 removed the <SignedIn>/<SignedOut>/<ClerkLoaded>/<ClerkLoading>
-// control components, so the shell branches on useAuth directly. Same three
-// states: loading skeleton, sign-in-only gate, signed-in app.
+// control components, so the shell branches on useAuth directly.
 export default function DaystitchShell() {
   const { isLoaded, isSignedIn } = useAuth()
+  const hasSession = useHasSessionCookie()
+
   if (!isLoaded) {
+    // If the user has not logged in (no session cookie), do not show the main
+    // page skeleton; show the landing page directly.
+    if (!hasSession) {
+      return <SignedOutGate />
+    }
     return <ShellLoading />
   }
+
   if (!isSignedIn) {
     return <SignedOutGate />
   }
+
   return <AppShell />
 }
