@@ -1,14 +1,24 @@
-import React from "react";
+import React, { act } from "react";
 import { render, screen, within, fireEvent, waitFor } from "@testing-library/react-native";
 import { useQuery } from "convex/react";
 import { TimelineScreen } from "@/components/timeline/timeline-screen";
 import { isoDay, type DayEntry } from "@/lib/daystitch";
+import {
+  createEntryMutation,
+  updateEntryMutation,
+  removeEntryMutation,
+  toggleDoneMutation,
+} from "@/lib/entries-api";
 
 const mockToggleDone = jest.fn();
+const mockCreate = jest.fn();
+const mockUpdate = jest.fn();
+const mockRemove = jest.fn();
+const mockUseMutation = jest.fn();
 
 jest.mock("convex/react", () => ({
   useQuery: jest.fn(),
-  useMutation: jest.fn(() => mockToggleDone),
+  useMutation: (mutation: unknown) => mockUseMutation(mutation),
 }));
 
 describe("TimelineScreen", () => {
@@ -67,6 +77,15 @@ describe("TimelineScreen", () => {
     jest.clearAllMocks();
     (useQuery as jest.Mock).mockReturnValue(mockEntries);
     mockToggleDone.mockResolvedValue(undefined);
+    mockCreate.mockResolvedValue("new_entry_id");
+    mockUpdate.mockResolvedValue(undefined);
+    mockRemove.mockResolvedValue(undefined);
+    mockUseMutation.mockImplementation((mutation) => {
+      if (mutation === createEntryMutation) return mockCreate;
+      if (mutation === updateEntryMutation) return mockUpdate;
+      if (mutation === removeEntryMutation) return mockRemove;
+      return mockToggleDone;
+    });
   });
 
   it("renders month banner with entry count", async () => {
@@ -217,5 +236,118 @@ describe("TimelineScreen", () => {
 
     expect(within(finalCheckbox).queryByText("✓")).toBeNull();
     expect(finalTitle.props.className).not.toContain("line-through");
+  });
+
+  it("opens create sheet pre-filled with date when clicking day '+' button", async () => {
+    await render(<TimelineScreen />);
+
+    const tomorrowSection = screen.getByTestId(`day-section-${tomorrowKey}`);
+    const addBtn = within(tomorrowSection).getByTestId("add-entry-button");
+
+    await act(async () => {
+      fireEvent.press(addBtn);
+    });
+
+    expect(screen.getByTestId("entry-sheet")).toBeTruthy();
+    expect(screen.getByTestId("entry-date").props.value).toBe(tomorrowKey);
+  });
+
+  it("opens create sheet pre-filled with today when clicking FAB", async () => {
+    await render(<TimelineScreen />);
+
+    const fab = screen.getByTestId("timeline-fab");
+    expect(fab).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(fab);
+    });
+
+    expect(screen.getByTestId("entry-sheet")).toBeTruthy();
+    expect(screen.getByTestId("entry-date").props.value).toBe(todayKey);
+  });
+
+  it("creates entry on valid form submission from FAB", async () => {
+    await render(<TimelineScreen />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("timeline-fab"));
+    });
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId("entry-title"), "New FAB Task");
+      fireEvent.changeText(screen.getByTestId("entry-time"), "12:00");
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-save"));
+    });
+
+    expect(mockCreate).toHaveBeenCalledWith({
+      date: todayKey,
+      title: "New FAB Task",
+      type: "task",
+      time: "12:00",
+    });
+  });
+
+  it("opens edit sheet when clicking entry card and fires updateEntryMutation on save", async () => {
+    await render(<TimelineScreen />);
+
+    const eventCard = screen.getByTestId("event-card-e1");
+
+    await act(async () => {
+      fireEvent.press(eventCard);
+    });
+
+    expect(screen.getByTestId("entry-sheet")).toBeTruthy();
+    expect(screen.getByTestId("entry-title").props.value).toBe("Design Review");
+
+    await act(async () => {
+      fireEvent.changeText(screen.getByTestId("entry-title"), "Design Review V2");
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-save"));
+    });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "e1",
+        title: "Design Review V2",
+      })
+    );
+  });
+
+  it("fires removeEntryMutation when clicking delete in edit sheet", async () => {
+    await render(<TimelineScreen />);
+
+    const eventCard = screen.getByTestId("event-card-e1");
+
+    await act(async () => {
+      fireEvent.press(eventCard);
+    });
+
+    const deleteBtn = screen.getByTestId("entry-delete");
+    expect(deleteBtn).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(deleteBtn);
+    });
+
+    expect(mockRemove).toHaveBeenCalledWith({ id: "e1" });
+  });
+
+  it("prevents save when title is empty in timeline sheet", async () => {
+    await render(<TimelineScreen />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("timeline-fab"));
+    });
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("entry-save"));
+    });
+
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });

@@ -21,6 +21,7 @@ import { listRangeQuery, toggleDoneMutation } from "../../lib/entries-api";
 import { MonthBanner } from "./month-banner";
 import { WeekHeader } from "./week-header";
 import { DaySection } from "./day-section";
+import { EntrySheet } from "../entry-sheet";
 
 // ponytail: single-month window with scroll; upgrade to multi-month windowed FlatList when infinite scroll is needed.
 export function TimelineScreen() {
@@ -35,6 +36,35 @@ export function TimelineScreen() {
   const [optimisticOverrides, setOptimisticOverrides] = useState<
     Record<string, boolean>
   >({});
+  const [sheetState, setSheetState] = useState<{
+    open: boolean;
+    date: string;
+    entry: DayEntry | null;
+  }>({
+    open: false,
+    date: todayKey,
+    entry: null,
+  });
+
+  const handleOpenCreate = useCallback((entryDate: string) => {
+    setSheetState({
+      open: true,
+      date: entryDate,
+      entry: null,
+    });
+  }, []);
+
+  const handleOpenEdit = useCallback((entry: DayEntry) => {
+    setSheetState({
+      open: true,
+      date: entry.date,
+      entry,
+    });
+  }, []);
+
+  const handleCloseSheet = useCallback(() => {
+    setSheetState((prev) => ({ ...prev, open: false }));
+  }, []);
 
   const year = Math.floor(currentMonthIdx / 12);
   const month = currentMonthIdx % 12;
@@ -179,6 +209,8 @@ export function TimelineScreen() {
                     todayKey={todayKey}
                     entries={byDate.get(k) ?? []}
                     onToggleDone={handleToggleDone}
+                    onOpenEntry={handleOpenEdit}
+                    onAddEntry={handleOpenCreate}
                     onLayout={isToday ? handleTodayLayout : undefined}
                   />
                 );
@@ -187,6 +219,23 @@ export function TimelineScreen() {
           );
         })}
       </ScrollView>
+
+      <Pressable
+        testID="timeline-fab"
+        onPress={() => handleOpenCreate(todayKey)}
+        accessibilityRole="button"
+        accessibilityLabel="Create entry for today"
+        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg active:bg-blue-700"
+      >
+        <Text className="text-2xl font-bold text-white">+</Text>
+      </Pressable>
+
+      <EntrySheet
+        open={sheetState.open}
+        onClose={handleCloseSheet}
+        date={sheetState.date}
+        entry={sheetState.entry}
+      />
     </View>
   );
 }
