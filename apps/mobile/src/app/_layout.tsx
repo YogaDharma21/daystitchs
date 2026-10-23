@@ -1,18 +1,35 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import "../../global.css";
+import React, { useMemo } from "react";
+import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/expo";
+import { ConvexProviderWithClerk } from "convex/react-clerk";
+import { ConvexReactClient } from "convex/react";
+import { Slot } from "expo-router";
+import { tokenCache } from "../utils/cache";
+import { AuthGate } from "../components/auth-gate";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+const publishableKey =
+  process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "pk_test_placeholder";
+const convexUrl =
+  process.env.EXPO_PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud";
 
-SplashScreen.preventAutoHideAsync();
+export default function RootLayout() {
+  const convex = useMemo(
+    () =>
+      new ConvexReactClient(convexUrl, {
+        unsavedChangesWarning: false,
+      }),
+    []
+  );
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      <ClerkLoaded>
+        <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+          <AuthGate>
+            <Slot />
+          </AuthGate>
+        </ConvexProviderWithClerk>
+      </ClerkLoaded>
+    </ClerkProvider>
   );
 }
