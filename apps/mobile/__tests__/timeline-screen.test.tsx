@@ -1,12 +1,14 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react-native";
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react-native";
 import { useQuery } from "convex/react";
 import { TimelineScreen } from "@/components/timeline/timeline-screen";
 import { isoDay, type DayEntry } from "@/lib/daystitch";
 
+const mockToggleDone = jest.fn();
+
 jest.mock("convex/react", () => ({
   useQuery: jest.fn(),
-  useMutation: jest.fn(() => jest.fn()),
+  useMutation: jest.fn(() => mockToggleDone),
 }));
 
 describe("TimelineScreen", () => {
@@ -64,6 +66,7 @@ describe("TimelineScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuery as jest.Mock).mockReturnValue(mockEntries);
+    mockToggleDone.mockResolvedValue(undefined);
   });
 
   it("renders month banner with entry count", async () => {
@@ -126,5 +129,93 @@ describe("TimelineScreen", () => {
 
     const todayBtn = screen.getByTestId("today-button");
     expect(todayBtn).toBeTruthy();
+  });
+
+  it("invokes toggleDone mutation with task id when tapping task checkbox", async () => {
+    await render(<TimelineScreen />);
+
+    const taskCard = screen.getByTestId("task-card-t1");
+    const checkbox = within(taskCard).getByTestId("task-checkbox");
+
+    fireEvent.press(checkbox);
+
+    expect(mockToggleDone).toHaveBeenCalledWith({ id: "t1" });
+  });
+
+  it("immediately shows checked state and strike-through title when tapping task checkbox", async () => {
+    await render(<TimelineScreen />);
+
+    let taskCard = screen.getByTestId("task-card-t1");
+    let checkbox = within(taskCard).getByTestId("task-checkbox");
+    let title = within(taskCard).getByTestId("task-title");
+
+    expect(checkbox.props.accessibilityState?.checked).toBe(false);
+    expect(title.props.className).not.toContain("line-through");
+
+    fireEvent.press(checkbox);
+
+    await waitFor(() => {
+      taskCard = screen.getByTestId("task-card-t1");
+      checkbox = within(taskCard).getByTestId("task-checkbox");
+      expect(checkbox.props.accessibilityState?.checked).toBe(true);
+    });
+
+    title = within(taskCard).getByTestId("task-title");
+    expect(within(checkbox).getByText("✓")).toBeTruthy();
+    expect(title.props.className).toContain("line-through");
+    expect(title.props.className).toContain("text-neutral-500");
+  });
+
+  it("toggles back to unchecked when tapping task checkbox again", async () => {
+    await render(<TimelineScreen />);
+
+    let taskCard = screen.getByTestId("task-card-t1");
+    let checkbox = within(taskCard).getByTestId("task-checkbox");
+
+    fireEvent.press(checkbox);
+
+    await waitFor(() => {
+      taskCard = screen.getByTestId("task-card-t1");
+      checkbox = within(taskCard).getByTestId("task-checkbox");
+      expect(checkbox.props.accessibilityState?.checked).toBe(true);
+    });
+
+    fireEvent.press(checkbox);
+
+    await waitFor(() => {
+      taskCard = screen.getByTestId("task-card-t1");
+      checkbox = within(taskCard).getByTestId("task-checkbox");
+      expect(checkbox.props.accessibilityState?.checked).toBe(false);
+    });
+
+    const title = within(taskCard).getByTestId("task-title");
+    expect(within(checkbox).queryByText("✓")).toBeNull();
+    expect(title.props.className).not.toContain("line-through");
+  });
+
+  it("reverts optimistic state if mutation rejects", async () => {
+    mockToggleDone.mockRejectedValueOnce(new Error("Mutation failed"));
+
+    await render(<TimelineScreen />);
+
+    const taskCard = screen.getByTestId("task-card-t1");
+    const checkbox = within(taskCard).getByTestId("task-checkbox");
+
+    expect(checkbox.props.accessibilityState?.checked).toBe(false);
+
+    fireEvent.press(checkbox);
+
+    await waitFor(() => {
+      const updatedCard = screen.getByTestId("task-card-t1");
+      const updatedCheckbox = within(updatedCard).getByTestId("task-checkbox");
+      expect(updatedCheckbox.props.accessibilityState?.checked).toBe(false);
+    });
+
+    const finalCard = screen.getByTestId("task-card-t1");
+    const finalCheckbox = within(finalCard).getByTestId("task-checkbox");
+    const finalTitle = within(finalCard).getByTestId("task-title");
+
+    expect(within(finalCheckbox).queryByText("✓")).toBeNull();
+    expect(finalTitle.props.className).not.toContain("line-through");
   });
 });

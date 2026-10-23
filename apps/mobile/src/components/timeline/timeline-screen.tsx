@@ -31,6 +31,10 @@ export function TimelineScreen() {
 
   const [currentMonthIdx, setCurrentMonthIdx] = useState(todayIdx);
   const [todayY, setTodayY] = useState(0);
+  // ponytail: local optimistic state; upgrade to Convex optimistic mutation if multi-screen sync needed.
+  const [optimisticOverrides, setOptimisticOverrides] = useState<
+    Record<string, boolean>
+  >({});
 
   const year = Math.floor(currentMonthIdx / 12);
   const month = currentMonthIdx % 12;
@@ -43,15 +47,40 @@ export function TimelineScreen() {
   const toggleDone = useMutation(toggleDoneMutation);
 
   const handleToggleDone = useCallback(
-    (id: string) => {
-      void toggleDone({ id });
+    async (id: string) => {
+      const original = entries?.find((e) => e._id === id);
+      const currentDone =
+        id in optimisticOverrides
+          ? optimisticOverrides[id]
+          : Boolean(original?.done);
+      const nextDone = !currentDone;
+
+      setOptimisticOverrides((prev) => ({ ...prev, [id]: nextDone }));
+
+      try {
+        await toggleDone({ id });
+      } catch {
+        setOptimisticOverrides((prev) => {
+          const next = { ...prev };
+          if (id in optimisticOverrides) {
+            next[id] = optimisticOverrides[id];
+          } else {
+            delete next[id];
+          }
+          return next;
+        });
+      }
     },
-    [toggleDone]
+    [entries, optimisticOverrides, toggleDone]
   );
 
   const byDate = useMemo(() => {
     const map = new Map<string, DayEntry[]>();
-    for (const entry of entries ?? []) {
+    for (const rawEntry of entries ?? []) {
+      const entry =
+        rawEntry._id in optimisticOverrides
+          ? { ...rawEntry, done: optimisticOverrides[rawEntry._id] }
+          : rawEntry;
       const list = map.get(entry.date);
       if (list) {
         list.push(entry);
@@ -60,7 +89,7 @@ export function TimelineScreen() {
       }
     }
     return map;
-  }, [entries]);
+  }, [entries, optimisticOverrides]);
 
   const jumpToToday = useCallback(() => {
     if (currentMonthIdx !== todayIdx) {
