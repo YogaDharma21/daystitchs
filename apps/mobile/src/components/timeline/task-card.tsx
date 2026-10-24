@@ -18,7 +18,9 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Task: ${entry.title}`}
-      className="flex-row items-start gap-3 rounded-xl border border-neutral-800 bg-neutral-900/50 p-3.5 mb-2.5 active:bg-neutral-800/80"
+      className={`flex-row items-start gap-3 rounded-xl border border-border bg-card p-3.5 mb-2.5 active:bg-surface ${
+        isDone ? "opacity-60" : ""
+      }`}
     >
       <Pressable
         testID="task-checkbox"
@@ -26,14 +28,14 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isDone }}
         accessibilityLabel={`Mark ${entry.title} as ${isDone ? "incomplete" : "complete"}`}
-        className={`mt-0.5 h-5 w-5 rounded-md border items-center justify-center ${
+        className={`mt-0.5 h-4.5 w-4.5 rounded-md border items-center justify-center ${
           isDone
-            ? "border-emerald-500 bg-emerald-500"
-            : "border-neutral-600 bg-neutral-950"
+            ? "border-mineral-emerald bg-mineral-emerald-tint"
+            : "border-border bg-surface-inset"
         }`}
       >
         {isDone ? (
-          <Text className="text-xs font-bold text-black">✓</Text>
+          <Text className="text-xs font-semibold text-mineral-emerald">✓</Text>
         ) : null}
       </Pressable>
 
@@ -41,8 +43,8 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
         <View className="flex-row items-baseline justify-between gap-2">
           <Text
             testID="task-title"
-            className={`text-base font-semibold ${
-              isDone ? "line-through text-neutral-500" : "text-white"
+            className={`text-[13px] font-medium leading-snug ${
+              isDone ? "line-through text-muted-foreground" : "text-foreground"
             }`}
           >
             {entry.title}
@@ -50,7 +52,7 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
           {timeText ? (
             <Text
               testID="task-time"
-              className="text-xs font-medium text-neutral-400"
+              className="text-[11px] font-medium text-muted-foreground"
             >
               {timeText}
             </Text>
@@ -60,9 +62,7 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
         {entry.detail ? (
           <Text
             testID="task-detail"
-            className={`mt-1 text-xs leading-relaxed ${
-              isDone ? "text-neutral-600" : "text-neutral-400"
-            }`}
+            className="mt-1 text-xs text-muted-foreground leading-relaxed"
           >
             {entry.detail}
           </Text>

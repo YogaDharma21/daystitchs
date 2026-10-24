@@ -63,35 +63,25 @@ function MonthBanner({
       data-testid="month-banner"
       id={`m-${year}-${month}`}
       data-ym={`${year}-${month}`}
-      className={`relative flex min-h-[150px] scroll-mt-[70px] flex-col justify-center overflow-hidden px-[58px] pt-12 pb-11 ${
-        first ? "" : "mt-7"
+      className={`relative flex min-h-[140px] scroll-mt-[70px] flex-col justify-center overflow-hidden border-y border-border bg-card px-6 sm:px-14 pt-10 pb-9 text-card-foreground ${
+        first ? "" : "mt-8"
       }`}
-      style={{
-        // Port of the index.html banner: radial highlight over a vertical
-        // gradient, with an oversized ghost month number at the right edge.
-        background:
-          "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
-        color: "var(--secondary-foreground)",
-      }}
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[128px] leading-none font-extrabold tabular-nums select-none"
-        style={{
-          color: "color-mix(in oklch, var(--foreground) 8%, transparent)",
-        }}
+        className="pointer-events-none absolute top-1/2 right-6 -translate-y-1/2 text-[110px] leading-none font-bold tabular-nums text-foreground/[0.04] select-none"
       >
         {String(month + 1).padStart(2, "0")}
       </span>
       <p
         data-testid="month-count"
-        className="relative m-0 mb-1.5 text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase"
+        className="relative m-0 mb-1 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase tabular-nums"
       >
         {year} · {count} {count === 1 ? "entry" : "entries"}
       </p>
       <h2
         data-testid="month-title"
-        className="relative m-0 text-[34px] font-extrabold tracking-[-0.03em]"
+        className="relative m-0 text-3xl font-semibold tracking-[-0.03em] text-foreground"
       >
         {name}
       </h2>
@@ -123,7 +113,7 @@ function WeekRow({
       aria-expanded={open}
       {...(open ? { "data-collapse": sunKey } : { "data-expand": sunKey })}
       onClick={onToggle}
-      className="flex w-full items-center gap-3 px-6 pt-8 pb-1 text-left text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase"
+      className="flex w-full items-center gap-3 px-6 pt-7 pb-1 text-left text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
     >
       <span data-testid="week-label" className="flex-none">
         {weekLabel(sun)}
@@ -131,12 +121,12 @@ function WeekRow({
       {count > 0 ? (
         <span
           data-testid="week-count"
-          className="flex-none rounded-full border bg-secondary px-2.5 py-0.5 tracking-normal normal-case"
+          className="flex-none rounded-full border border-border bg-surface px-2.5 py-0.5 tracking-normal normal-case text-muted-foreground tabular-nums text-[11px]"
         >
           {count} {count === 1 ? "entry" : "entries"}
         </span>
       ) : null}
-      <span aria-hidden="true" className="h-px flex-1 bg-border" />
+      <span aria-hidden="true" className="h-px flex-1 bg-border-subtle" />
       <ChevronDown
         aria-hidden="true"
         className={`size-3.5 flex-none transition-transform ${open ? "rotate-180" : ""}`}
@@ -163,15 +153,15 @@ function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className="cursor-pointer rounded-xl bg-secondary/50 px-3.5 py-3"
+      className="group cursor-pointer rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface"
     >
-      <div data-testid="event-title" className="text-sm font-semibold">
+      <div data-testid="event-title" className="text-[13px] font-medium leading-snug text-foreground">
         {entry.title}
       </div>
       {meta ? (
         <div
           data-testid="event-sub"
-          className="mt-0.5 text-xs text-muted-foreground"
+          className="mt-1 text-[11px] text-muted-foreground tabular-nums"
         >
           {meta}
         </div>
@@ -202,7 +192,9 @@ function TaskCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-secondary/50 px-3.5 py-3"
+      className={`group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface ${
+        done ? "opacity-60" : ""
+      }`}
     >
       <button
         data-testid="task-toggle"
@@ -214,25 +206,27 @@ function TaskCard({
           e.stopPropagation()
           onToggle()
         }}
-        className={`mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs ${
+        className={`mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors ${
           done
-            ? "border-transparent bg-primary text-primary-foreground"
-            : "text-transparent"
+            ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
+            : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
         }`}
       >
         {done ? "✓" : ""}
       </button>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div
           data-testid="task-title"
-          className={`text-sm font-semibold ${done ? "line-through opacity-60" : ""}`}
+          className={`text-[13px] font-medium leading-snug ${
+            done ? "line-through text-muted-foreground" : "text-foreground"
+          }`}
         >
           {entry.title}
         </div>
         {meta ? (
           <div
             data-testid="task-sub"
-            className="mt-0.5 text-xs text-muted-foreground"
+            className="mt-1 text-[11px] text-muted-foreground tabular-nums"
           >
             {meta}
           </div>
@@ -269,25 +263,22 @@ function DaySection({
       id={`d-${key}`}
       className="relative grid scroll-mt-20 grid-cols-[44px_1fr] gap-2 px-6 pt-5"
     >
-      {/* Connector line down the day column, like the original day list. One
-          segment per day, so the segments join up; the head sits above it and
-          its own pieces mask it, which leaves the line showing in the gaps.
-          Left edge 24px (px-6) + half of the 44px column. */}
+      {/* Connector line down the day column */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-foreground/14"
+        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-border-subtle"
       />
       <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
-        <span className="bg-background text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+        <span className="bg-background text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
           {dow}
         </span>
         <span
           data-testid="day-number"
           data-today={key === todayKey ? "true" : "false"}
-          className={`flex size-9 items-center justify-center rounded-full text-lg font-bold tabular-nums ${
+          className={`flex size-9 items-center justify-center rounded-full text-base font-semibold tabular-nums ${
             key === todayKey
-              ? "bg-primary text-primary-foreground"
-              : "bg-background"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "bg-background text-foreground"
           }`}
         >
           {day.getDate()}
@@ -299,7 +290,7 @@ function DaySection({
           aria-label={`Add on ${key}`}
           aria-expanded={chooserOpen}
           onClick={() => setChooserOpen((v) => !v)}
-          className="mt-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-background text-sm leading-none text-muted-foreground"
+          className="mt-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-surface text-xs leading-none text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
         >
           {chooserOpen ? "×" : "+"}
         </button>
@@ -320,7 +311,7 @@ function DaySection({
                     setChooserOpen(false)
                     onAdd(key, t)
                   }}
-                  className="rounded-full border bg-secondary px-2.5 py-1 text-[11px] font-bold"
+                  className="rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-surface-inset"
                 >
                   {label}
                 </button>
@@ -333,7 +324,7 @@ function DaySection({
         {sorted.length === 0 ? (
           <div
             data-testid="day-empty"
-            className="py-1 text-[13px] text-muted-foreground/70"
+            className="py-1 text-[12px] text-subtle-foreground"
           >
             No entries
           </div>
@@ -357,14 +348,14 @@ function DaySection({
 }
 
 function SkeletonBar({ className }: { className: string }) {
-  return <div aria-hidden="true" className={`bg-muted ${className}`} />
+  return <div aria-hidden="true" className={`bg-surface-inset ${className}`} />
 }
 
 function WeekRowSkeleton() {
   return (
-    <div className="flex w-full items-center gap-3 px-6 pt-8 pb-1">
+    <div className="flex w-full items-center gap-3 px-6 pt-7 pb-1">
       <SkeletonBar className="h-3 w-20 flex-none rounded-full" />
-      <span className="h-px flex-1 bg-border" />
+      <span className="h-px flex-1 bg-border-subtle" />
       <SkeletonBar className="size-3.5 flex-none rounded-full" />
     </div>
   )
@@ -375,7 +366,7 @@ function DayRowSkeleton() {
     <div className="relative grid grid-cols-[44px_1fr] gap-2 px-6 pt-5">
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-foreground/14"
+        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-border-subtle"
       />
       {/* Mirrors the day column: weekday label, day number, add button. */}
       <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
@@ -383,7 +374,7 @@ function DayRowSkeleton() {
         <SkeletonBar className="size-9 rounded-full" />
         <span
           aria-hidden="true"
-          className="mt-1.5 size-6 rounded-full border border-border bg-background"
+          className="mt-1.5 size-6 rounded-full border border-border bg-surface"
         />
       </div>
       <SkeletonBar className="mt-1.5 h-4 w-24 rounded-md" />
@@ -406,7 +397,7 @@ export function TimelineLoading() {
       <DayRowSkeleton />
       <WeekRowSkeleton />
       <WeekRowSkeleton />
-      <div className="mt-7 flex min-h-[150px] flex-col justify-center gap-3 px-[58px] pt-12 pb-11">
+      <div className="mt-7 flex min-h-[140px] flex-col justify-center gap-3 border-y border-border bg-card px-6 sm:px-14 pt-10 pb-9">
         <SkeletonBar className="h-3 w-24 rounded-full" />
         <SkeletonBar className="h-8 w-40 rounded-md" />
       </div>
@@ -431,10 +422,10 @@ function MonthChip({
       data-idx={idx}
       aria-pressed={active}
       onClick={() => onJump(idx)}
-      className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+      className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
         active
-          ? "chip-on border-transparent bg-primary text-primary-foreground"
-          : "bg-secondary"
+          ? "chip-on border-transparent bg-primary text-primary-foreground font-semibold"
+          : "border-border bg-surface text-muted-foreground hover:bg-surface-inset hover:text-foreground"
       }`}
     >
       {new Date(Math.floor(idx / 12), idx % 12, 1).toLocaleDateString("en-US", {
@@ -748,7 +739,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     <div
       ref={headerRef}
       data-testid="timeline-header"
-      className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur"
+      className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md"
     >
       <div className="mx-auto flex w-full max-w-[1000px] items-center justify-between px-6 py-3">
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -758,7 +749,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               data-testid="timeline-title"
               aria-label="Pick a date"
               aria-expanded={pickerOpen}
-              className="flex items-center gap-1.5 text-lg font-semibold tracking-tight"
+              className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground"
             >
               <span data-testid="timeline-title-text">{title}</span>
               <ChevronDown
@@ -778,11 +769,11 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 data-testid="picker-prev"
                 aria-label="Previous month"
                 onClick={() => setPickerIdx((i) => Math.max(minMonth, i - 1))}
-                className="flex size-8 items-center justify-center rounded-full bg-secondary"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
               </button>
-              <p data-testid="picker-label" className="text-sm font-semibold">
+              <p data-testid="picker-label" className="text-sm font-semibold text-foreground">
                 {titleForYm(`${pickerYear}-${pickerMonth}`)}
               </p>
               <button
@@ -790,7 +781,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 data-testid="picker-next"
                 aria-label="Next month"
                 onClick={() => setPickerIdx((i) => Math.min(maxMonth, i + 1))}
-                className="flex size-8 items-center justify-center rounded-full bg-secondary"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <ChevronRight aria-hidden="true" className="size-4" />
               </button>
@@ -829,7 +820,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               {wdNames.map((w, i) => (
                 <span
                   key={i}
-                  className="py-1 text-[10px] font-bold text-muted-foreground"
+                  className="py-1 text-[10px] font-semibold text-muted-foreground uppercase"
                 >
                   {w}
                 </span>
@@ -843,10 +834,10 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     data-jump={c.key}
                     aria-label={c.key}
                     onClick={() => jumpToDate(c.key as string)}
-                    className={`flex size-8 items-center justify-center rounded-full text-[13px] tabular-nums ${
+                    className={`flex size-8 items-center justify-center rounded-full text-[13px] tabular-nums transition-colors ${
                       c.isToday
-                        ? "bg-primary font-bold text-primary-foreground"
-                        : "hover:bg-secondary"
+                        ? "bg-primary font-semibold text-primary-foreground shadow-xs"
+                        : "hover:bg-surface-inset"
                     }`}
                   >
                     {c.day}
@@ -866,7 +857,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 data-testid="search-btn"
                 aria-label="Search entries"
                 onClick={() => setSearchOpen(true)}
-                className="flex size-8 items-center justify-center rounded-full bg-secondary"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <Search aria-hidden="true" className="size-4" />
                 <span className="sr-only">Search</span>
@@ -880,7 +871,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 type="button"
                 data-testid="today-btn"
                 onClick={() => jumpToDate(todayKey)}
-                className="flex size-8 items-center justify-center rounded-full bg-secondary"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <CalendarDays aria-hidden="true" className="size-4" />
                 <span className="sr-only">Today</span>
@@ -954,7 +945,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
             aria-label="Loading earlier months"
             className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center"
           >
-            <p className="rounded-full border bg-secondary px-3 py-1 text-xs text-muted-foreground shadow">
+            <p className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted-foreground shadow-md">
               Loading earlier months…
             </p>
           </div>
@@ -1065,7 +1056,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
             data-testid="fab-scrim"
             aria-hidden="true"
             onClick={() => setFabOpen(false)}
-            className="fixed inset-0 z-30 bg-black/60"
+            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-xs"
           />
         ) : null}
         <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-2.5">
@@ -1083,7 +1074,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                       setFabOpen(false)
                       openNew(todayKey, t)
                     }}
-                    className="rounded-full bg-secondary px-5 py-3.5 text-[15px] font-semibold shadow-lg"
+                    className="rounded-full border border-border bg-surface px-5 py-3 text-[14px] font-medium text-foreground shadow-lg transition-colors hover:bg-surface-inset"
                   >
                     {label}
                   </button>
@@ -1097,7 +1088,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
             aria-label={fabOpen ? "Close" : "Add entry"}
             aria-expanded={fabOpen}
             onClick={() => setFabOpen((v) => !v)}
-            className="flex size-14 items-center justify-center rounded-full bg-primary text-3xl leading-none text-primary-foreground shadow-lg"
+            className="flex size-14 items-center justify-center rounded-full bg-primary text-3xl leading-none text-primary-foreground shadow-xl transition-transform active:scale-95"
           >
             <span aria-hidden="true" className={fabOpen ? "rotate-45" : ""}>
               +

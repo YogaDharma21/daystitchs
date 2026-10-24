@@ -120,7 +120,7 @@ export default function SearchDialog({
       <DialogContent
         data-testid="search-dialog"
         showCloseButton={false}
-        className="max-w-xl gap-0 overflow-hidden rounded-2xl border p-0 shadow-2xl"
+        className="max-w-xl gap-0 overflow-hidden rounded-2xl border border-border bg-popover p-0 shadow-[0_28px_56px_-40px_rgba(0,0,0,0.9)]"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>Search entries</DialogTitle>
@@ -131,7 +131,7 @@ export default function SearchDialog({
         </DialogHeader>
 
         {/* Search Input Bar */}
-        <div className="relative flex items-center border-b px-4 py-3">
+        <div className="relative flex items-center border-b border-border bg-popover px-4 py-3">
           <Search
             aria-hidden="true"
             className="mr-3 size-5 shrink-0 text-muted-foreground"
@@ -143,7 +143,7 @@ export default function SearchDialog({
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search entries (title, details, location)…"
-            className="h-auto border-0 p-0 text-base shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
+            className="h-auto border-0 bg-transparent p-0 text-base shadow-none placeholder:text-subtle-foreground focus-visible:ring-0"
           />
           {searchTerm ? (
             <button
@@ -159,7 +159,7 @@ export default function SearchDialog({
               <X className="size-4" />
             </button>
           ) : (
-            <kbd className="hidden items-center gap-1 rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline-flex">
+            <kbd className="hidden items-center gap-1 rounded border border-border bg-surface-inset px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground sm:inline-flex">
               ESC
             </kbd>
           )}
@@ -177,7 +177,7 @@ export default function SearchDialog({
               data-testid="search-prompt"
               className="flex flex-col items-center justify-center px-4 py-10 text-center text-sm text-muted-foreground"
             >
-              <Command className="mb-2 size-8 opacity-40" />
+              <Command className="mb-2 size-8 text-subtle-foreground" />
               <p className="font-medium text-foreground">Search DayStitch</p>
               <p className="mt-1 max-w-xs text-xs text-muted-foreground">
                 Quickly jump to any event or task across your entire timeline.
@@ -198,13 +198,13 @@ export default function SearchDialog({
               <p className="font-medium text-foreground">
                 No matching entries found
               </p>
-              <p className="mt-1 text-xs">
+              <p className="mt-1 text-xs text-subtle-foreground">
                 No events or tasks match &ldquo;{debouncedTerm}&rdquo;.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
-              <p className="px-3 py-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+              <p className="px-3 py-1.5 text-[10px] font-semibold tracking-wider text-muted-foreground uppercase tabular-nums">
                 {results.length} {results.length === 1 ? "result" : "results"}
               </p>
               {results.map((entry, index) => {
@@ -226,21 +226,21 @@ export default function SearchDialog({
                     data-testid={`search-result-${entry._id}`}
                     onClick={() => handleSelect(entry)}
                     onMouseEnter={() => setSelectedIndex(index)}
-                    className={`group flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                    className={`group flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
                       isSelected
-                        ? "bg-secondary text-secondary-foreground"
-                        : "text-foreground hover:bg-secondary/60"
+                        ? "bg-surface text-foreground"
+                        : "text-foreground hover:bg-surface-inset"
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">
                       {entry.type === "task" ? (
                         entry.done ? (
-                          <CheckCircle2 className="size-4 text-primary" />
+                          <CheckCircle2 className="size-4 text-mineral-emerald" />
                         ) : (
                           <Circle className="size-4 text-muted-foreground" />
                         )
                       ) : (
-                        <Calendar className="size-4 text-primary" />
+                        <Calendar className="size-4 text-foreground/80" />
                       )}
                     </div>
 
@@ -250,23 +250,23 @@ export default function SearchDialog({
                           className={`truncate text-sm font-medium ${
                             entry.done
                               ? "text-muted-foreground line-through"
-                              : ""
+                              : "text-foreground"
                           }`}
                         >
                           {entry.title}
                         </span>
-                        <span className="py-0.2 shrink-0 rounded bg-muted px-1.5 text-[10px] font-medium text-muted-foreground uppercase">
+                        <span className="shrink-0 rounded-full border border-border-subtle bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase">
                           {entry.type}
                         </span>
                       </div>
 
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
                         <span>{formattedDate}</span>
 
                         {entry.type === "event" &&
                         (entry.start || entry.end) ? (
-                          <span className="flex items-center gap-1">
-                            <Clock className="size-3" />
+                          <span className="flex items-center gap-1 font-mono text-[11px]">
+                            <Clock className="size-3 text-muted-foreground/70" />
                             {entry.start ? fmtTime(entry.start) : ""}
                             {entry.start && entry.end ? " – " : ""}
                             {entry.end ? fmtTime(entry.end) : ""}
@@ -274,22 +274,22 @@ export default function SearchDialog({
                         ) : null}
 
                         {entry.type === "task" && entry.time ? (
-                          <span className="flex items-center gap-1">
-                            <Clock className="size-3" />
+                          <span className="flex items-center gap-1 font-mono text-[11px]">
+                            <Clock className="size-3 text-muted-foreground/70" />
                             {fmtTime(entry.time)}
                           </span>
                         ) : null}
 
                         {entry.loc ? (
-                          <span className="flex max-w-[200px] items-center gap-1 truncate">
-                            <MapPin className="size-3 shrink-0" />
+                          <span className="flex max-w-[200px] items-center gap-1 truncate text-[11px]">
+                            <MapPin className="size-3 shrink-0 text-muted-foreground/70" />
                             <span className="truncate">{entry.loc}</span>
                           </span>
                         ) : null}
                       </div>
 
                       {entry.detail ? (
-                        <p className="mt-1 line-clamp-1 text-xs text-muted-foreground/80">
+                        <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
                           {entry.detail}
                         </p>
                       ) : null}
@@ -302,26 +302,26 @@ export default function SearchDialog({
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="flex items-center justify-between border-t bg-muted/40 px-4 py-2 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-border bg-surface/30 px-4 py-2 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>
-              <kbd className="rounded border bg-background px-1 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-border bg-surface-inset px-1 py-0.5 font-mono text-[10px]">
                 ↑
               </kbd>{" "}
-              <kbd className="rounded border bg-background px-1 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-border bg-surface-inset px-1 py-0.5 font-mono text-[10px]">
                 ↓
               </kbd>{" "}
               navigate
             </span>
             <span>
-              <kbd className="rounded border bg-background px-1 py-0.5 font-mono text-[10px]">
+              <kbd className="rounded border border-border bg-surface-inset px-1 py-0.5 font-mono text-[10px]">
                 ↵
               </kbd>{" "}
               open
             </span>
           </div>
           <span>
-            <kbd className="rounded border bg-background px-1 py-0.5 font-mono text-[10px]">
+            <kbd className="rounded border border-border bg-surface-inset px-1 py-0.5 font-mono text-[10px]">
               Esc
             </kbd>{" "}
             close

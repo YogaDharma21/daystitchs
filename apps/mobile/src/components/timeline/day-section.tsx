@@ -33,14 +33,14 @@ export function DaySection({
     <View
       testID={`day-section-${key}`}
       onLayout={onLayout}
-      className="px-4 pt-4 pb-2 border-b border-neutral-900"
+      className="px-4 pt-4 pb-2 border-b border-border-subtle"
     >
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-baseline gap-2">
-          <Text className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+          <Text className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {weekday}
           </Text>
-          <Text className="text-lg font-bold text-white">
+          <Text className="text-base font-semibold text-foreground">
             {dayOfMonth}
           </Text>
         </View>
@@ -49,9 +49,9 @@ export function DaySection({
           {isToday ? (
             <View
               testID="today-indicator"
-              className="rounded-full bg-blue-600 px-2.5 py-0.5"
+              className="rounded-full bg-foreground px-2.5 py-0.5"
             >
-              <Text className="text-xs font-bold text-white">Today</Text>
+              <Text className="text-xs font-semibold text-background">Today</Text>
             </View>
           ) : null}
           <Pressable
@@ -59,16 +59,16 @@ export function DaySection({
             onPress={() => onAddEntry?.(key)}
             accessibilityRole="button"
             accessibilityLabel={`Add entry for ${weekday} ${dayOfMonth}`}
-            className="h-7 w-7 items-center justify-center rounded-full bg-neutral-800 active:bg-neutral-700"
+            className="h-6 w-6 items-center justify-center rounded-full border border-border bg-surface active:bg-surface-inset"
           >
-            <Text className="text-sm font-bold text-neutral-300">+</Text>
+            <Text className="text-xs font-medium text-muted-foreground">+</Text>
           </Pressable>
         </View>
       </View>
 
       <View className="flex-col">
         {sorted.length === 0 ? (
-          <Text className="py-2 text-xs italic text-neutral-600">
+          <Text className="py-2 text-xs text-subtle-foreground">
             No entries
           </Text>
         ) : (

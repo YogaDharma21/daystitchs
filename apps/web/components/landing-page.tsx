@@ -111,10 +111,7 @@ export default function LandingPage({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       >
-        <div className="absolute -top-40 left-1/2 size-[650px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px]" />
-        <div className="absolute top-[40%] -right-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute top-[60%] -left-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:4rem_4rem]" />
       </div>
 
       {/* Missing configuration notice banner if keys are not set */}
@@ -181,15 +178,15 @@ export default function LandingPage({
       )}
 
       {/* Header Navigation */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <img
               src="/icon-192.png"
               alt="DayStitch"
-              className="size-8 rounded-lg shadow-sm"
+              className="size-8 rounded-lg shadow-xs"
             />
-            <span className="text-lg font-bold tracking-tight">DayStitch</span>
+            <span className="text-lg font-semibold tracking-tight text-foreground">DayStitch</span>
           </div>
 
           <div className="flex items-center gap-3">{headerAction}</div>
@@ -200,9 +197,9 @@ export default function LandingPage({
       <section className="relative px-6 pt-20 pb-14 sm:pt-28 sm:pb-20">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           {/* Hero title */}
-          <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl leading-[1.1] font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Stitch your days together,{" "}
-            <span className="mt-1 block bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-transparent sm:mt-2">
+            <span className="mt-1 block text-muted-foreground sm:mt-2">
               without the clutter.
             </span>
           </h1>
@@ -223,18 +220,18 @@ export default function LandingPage({
       <section className="px-6 pb-20 sm:pb-28">
         <div className="mx-auto max-w-4xl">
           {/* App Window Frame Mockup */}
-          <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/60 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_28px_56px_-40px_rgba(0,0,0,0.9)]">
             {/* Native Window Titlebar */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-border/60 bg-muted/40 px-4 py-2.5">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-border bg-surface px-4 py-2.5">
               {/* Traffic light window controls */}
               <div className="flex items-center gap-2">
-                <span className="size-3 rounded-full border border-[#e0443e]/50 bg-[#ff5f56]/80" />
-                <span className="size-3 rounded-full border border-[#dea123]/50 bg-[#ffbd2e]/80" />
-                <span className="size-3 rounded-full border border-[#1aab29]/50 bg-[#27c93f]/80" />
+                <span className="size-3 rounded-full border border-mineral-crimson/50 bg-mineral-crimson/80" />
+                <span className="size-3 rounded-full border border-mineral-amber/50 bg-mineral-amber/80" />
+                <span className="size-3 rounded-full border border-mineral-emerald/50 bg-mineral-emerald/80" />
               </div>
 
               {/* Centered clean browser address pill */}
-              <div className="flex h-7 items-center gap-1.5 rounded-md border border-border/60 bg-background/50 px-3 font-mono text-xs text-muted-foreground">
+              <div className="flex h-7 items-center gap-1.5 rounded-full border border-border bg-surface-inset px-3 font-mono text-xs text-muted-foreground">
                 <Lock className="size-3 text-muted-foreground/60" />
                 <span>daystitch.app</span>
               </div>
@@ -244,17 +241,17 @@ export default function LandingPage({
             </div>
 
             {/* In-app sticky header mockup matching real DayStitch shell */}
-            <div className="flex items-center justify-between border-b border-border/50 bg-background/80 px-6 py-3">
-              <div className="flex items-center gap-1 text-sm font-bold tracking-tight">
+            <div className="flex items-center justify-between border-b border-border bg-background/80 px-6 py-3">
+              <div className="flex items-center gap-1 text-sm font-semibold tracking-tight text-foreground">
                 <span>October 2026</span>
                 <ChevronDown className="size-4 text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-secondary/80 px-3 text-xs font-semibold text-foreground shadow-xs">
-                  <CalendarDays className="size-3.5 text-primary" />
+                <div className="flex h-8 items-center gap-1.5 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-foreground shadow-xs">
+                  <CalendarDays className="size-3.5 text-foreground" />
                   <span>Today</span>
                 </div>
-                <div className="flex size-8 items-center justify-center rounded-full border border-border/60 bg-secondary/80 text-muted-foreground">
+                <div className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground">
                   <User className="size-4" />
                 </div>
               </div>
@@ -263,15 +260,21 @@ export default function LandingPage({
             {/* Inner Timeline Content */}
             <div className="space-y-6 p-4 sm:p-8">
               {/* Month Banner */}
-              <div className="border-b border-border/40 pb-4">
-                <p className="text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              <div className="relative overflow-hidden rounded-xl border border-border bg-card p-6 text-card-foreground">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-8xl font-bold tabular-nums text-foreground/[0.04] select-none"
+                >
+                  10
+                </span>
+                <p className="relative text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase tabular-nums">
                   2026 · 4 entries
                 </p>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-3xl font-extrabold tracking-tight">
+                <div className="relative mt-1 flex items-center justify-between">
+                  <h3 className="text-2xl font-semibold tracking-[-0.03em] text-foreground">
                     October
                   </h3>
-                  <div className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-secondary/50 px-2.5 py-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-muted-foreground">
                     <Calendar className="size-3.5" />
                     <span>Jump to Month</span>
                   </div>
@@ -279,38 +282,37 @@ export default function LandingPage({
               </div>
 
               {/* Day Row with Continuous Stitch Line */}
-              <div className="relative grid grid-cols-[48px_1fr] gap-4">
+              <div className="relative grid grid-cols-[44px_1fr] gap-3">
                 {/* Continuous vertical stitch line */}
                 <div
                   aria-hidden="true"
-                  className="absolute top-4 bottom-0 left-[23px] w-[2px] bg-gradient-to-b from-primary via-border to-border/20"
+                  className="pointer-events-none absolute top-0 bottom-0 left-[22px] w-px bg-border-subtle"
                 />
 
                 {/* Day Marker */}
-                <div className="relative flex flex-col items-center">
-                  <div className="z-10 flex size-9 flex-col items-center justify-center rounded-xl border border-primary/50 bg-background text-xs font-semibold text-primary shadow-sm">
-                    <span className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                      Wed
-                    </span>
-                    <span className="text-sm leading-none font-bold">22</span>
+                <div className="relative z-[1] flex flex-col items-center gap-1">
+                  <span className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                    Wed
+                  </span>
+                  <div className="flex size-9 items-center justify-center rounded-full bg-primary text-base font-semibold text-primary-foreground shadow-xs">
+                    22
                   </div>
-                  <div className="mt-2 size-2 rounded-full bg-primary" />
                 </div>
 
                 {/* Day Entries List */}
-                <div className="min-w-0 space-y-3">
+                <div className="min-w-0 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                    <span className="text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                       Wednesday · Today
                     </span>
                     <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Plus className="size-3 text-primary" />
+                      <Plus className="size-3 text-muted-foreground" />
                       <span>New Entry</span>
                     </div>
                   </div>
 
                   {/* Task / Event cards */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {tasks.map((item) => (
                       <div
                         key={item.id}
@@ -318,31 +320,27 @@ export default function LandingPage({
                           item.type === "task" && toggleTask(item.id)
                         }
                         className={cn(
-                          "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all select-none sm:p-3.5",
-                          item.type === "event"
-                            ? "border-primary/20 bg-primary/[0.04] hover:bg-primary/[0.08]"
-                            : item.done
-                              ? "border-border/30 bg-secondary/30 opacity-60"
-                              : "border-border/60 bg-secondary/60 hover:border-border hover:bg-secondary"
+                          "group relative flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors select-none hover:bg-surface",
+                          item.done && "opacity-60"
                         )}
                       >
-                        {/* Checkbox or Event Icon */}
+                        {/* Checkbox or Event */}
                         {item.type === "task" ? (
                           <button
                             type="button"
                             aria-label="Toggle task"
                             className={cn(
-                              "mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs transition-all",
+                              "mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors",
                               item.done
-                                ? "border-transparent bg-primary text-primary-foreground"
-                                : "border-border text-transparent hover:border-primary/60"
+                                ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
+                                : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
                             )}
                           >
                             <Check className="size-3" />
                           </button>
                         ) : (
-                          <div className="mt-0.5 flex size-5 flex-none items-center justify-center rounded-full bg-primary/20 text-primary">
-                            <Clock className="size-3" />
+                          <div className="mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-full bg-surface-inset text-muted-foreground">
+                            <Clock className="size-3 text-muted-foreground" />
                           </div>
                         )}
 
@@ -351,26 +349,24 @@ export default function LandingPage({
                           <div className="flex items-baseline justify-between gap-2">
                             <p
                               className={cn(
-                                "text-sm leading-snug font-medium",
-                                item.done &&
-                                  "text-muted-foreground line-through"
+                                "text-[13px] font-medium leading-snug",
+                                item.done
+                                  ? "text-muted-foreground line-through"
+                                  : "text-foreground"
                               )}
                             >
                               {item.title}
                             </p>
                             <span
                               className={cn(
-                                "rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase",
-                                item.type === "event"
-                                  ? "border border-primary/20 bg-primary/15 text-primary"
-                                  : "bg-muted text-muted-foreground"
+                                "rounded-full border border-border-subtle bg-surface px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase text-muted-foreground"
                               )}
                             >
                               {item.type}
                             </span>
                           </div>
 
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground tabular-nums">
                             <span className="flex items-center gap-1 font-mono text-[11px]">
                               <Clock className="size-3 text-muted-foreground/70" />
                               {item.time}

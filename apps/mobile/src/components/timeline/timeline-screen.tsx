@@ -136,10 +136,10 @@ export function TimelineScreen() {
     return (
       <View
         testID="timeline-loading"
-        className="flex-1 items-center justify-center bg-black p-6"
+        className="flex-1 items-center justify-center bg-background p-6"
       >
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text className="mt-4 text-sm text-neutral-400">Loading timeline...</Text>
+        <ActivityIndicator size="large" color="#f4f4f2" />
+        <Text className="mt-4 text-sm text-muted-foreground">Loading timeline...</Text>
       </View>
     );
   }
@@ -147,17 +147,17 @@ export function TimelineScreen() {
   const sundays = sundaysOfMonth(year, month);
 
   return (
-    <View className="flex-1 bg-black">
-      <View className="flex-row items-center justify-between border-b border-neutral-800 bg-neutral-950 px-4 py-2.5">
-        <Text className="text-base font-semibold text-white">Timeline</Text>
+    <View className="flex-1 bg-background">
+      <View className="flex-row items-center justify-between border-b border-border bg-card px-4 py-2.5">
+        <Text className="text-base font-semibold text-foreground">Timeline</Text>
         <Pressable
           testID="today-button"
           onPress={jumpToToday}
           accessibilityRole="button"
           accessibilityLabel="Jump to today"
-          className="rounded-full bg-blue-600 px-3 py-1 active:bg-blue-700"
+          className="rounded-full border border-border bg-surface px-3 py-1 active:bg-surface-inset"
         >
-          <Text className="text-xs font-bold text-white">Today</Text>
+          <Text className="text-xs font-semibold text-foreground">Today</Text>
         </Pressable>
       </View>
 
@@ -170,10 +170,10 @@ export function TimelineScreen() {
 
         {entries.length === 0 ? (
           <View testID="timeline-empty" className="p-8 items-center justify-center">
-            <Text className="text-base font-medium text-neutral-300">
+            <Text className="text-base font-medium text-foreground">
               No entries yet
             </Text>
-            <Text className="mt-1 text-center text-xs text-neutral-500">
+            <Text className="mt-1 text-center text-xs text-muted-foreground">
               Your timeline for this month is empty.
             </Text>
           </View>
@@ -225,9 +225,9 @@ export function TimelineScreen() {
         onPress={() => handleOpenCreate(todayKey)}
         accessibilityRole="button"
         accessibilityLabel="Create entry for today"
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg active:bg-blue-700"
+        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-foreground shadow-2xl active:opacity-90"
       >
-        <Text className="text-2xl font-bold text-white">+</Text>
+        <Text className="text-2xl font-bold text-background">+</Text>
       </Pressable>
 
       <EntrySheet
