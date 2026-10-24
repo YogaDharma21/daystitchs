@@ -1,19 +1,25 @@
-"use client";
+"use client"
 
-import * as React from "react";
-import { useMutation, useQuery } from "convex/react";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import * as React from "react"
+import { useMutation, useQuery } from "convex/react"
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+} from "lucide-react"
 
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@workspace/ui/components/popover";
+} from "@workspace/ui/components/popover"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@workspace/ui/components/tooltip";
+} from "@workspace/ui/components/tooltip"
 import {
   daysOfWeek,
   entryCardMeta,
@@ -31,11 +37,12 @@ import {
   weekLabel,
   type DayEntry,
   type EntryType,
-} from "@/lib/daystitch";
-import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api";
-import type { Id } from "@/convex/_generated/dataModel";
-import EntrySheet from "@/components/entry-sheet";
-import { EntryTypeChoice } from "@/components/entry-type-choice";
+} from "@/lib/daystitch"
+import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api"
+import type { Id } from "@/convex/_generated/dataModel"
+import EntrySheet from "@/components/entry-sheet"
+import SearchDialog from "@/components/search-dialog"
+import { EntryTypeChoice } from "@/components/entry-type-choice"
 
 function MonthBanner({
   year,
@@ -43,53 +50,43 @@ function MonthBanner({
   count,
   first,
 }: {
-  year: number;
-  month: number;
-  count: number;
-  first: boolean;
+  year: number
+  month: number
+  count: number
+  first: boolean
 }) {
   const name = new Date(year, month, 1).toLocaleDateString("en-US", {
     month: "long",
-  });
+  })
   return (
     <div
       data-testid="month-banner"
       id={`m-${year}-${month}`}
       data-ym={`${year}-${month}`}
-      className={`relative flex min-h-[150px] flex-col justify-center overflow-hidden px-[58px] pt-12 pb-11 scroll-mt-[70px] ${
-        first ? "" : "mt-7"
+      className={`relative flex min-h-[140px] scroll-mt-[70px] flex-col justify-center overflow-hidden border-y border-border bg-card px-6 sm:px-14 pt-10 pb-9 text-card-foreground ${
+        first ? "" : "mt-8"
       }`}
-      style={{
-        // Port of the index.html banner: radial highlight over a vertical
-        // gradient, with an oversized ghost month number at the right edge.
-        background:
-          "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
-        color: "var(--secondary-foreground)",
-      }}
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[128px] leading-none font-extrabold tabular-nums select-none"
-        style={{
-          color: "color-mix(in oklch, var(--foreground) 8%, transparent)",
-        }}
+        className="pointer-events-none absolute top-1/2 right-6 -translate-y-1/2 text-[110px] leading-none font-bold tabular-nums text-foreground/[0.04] select-none"
       >
         {String(month + 1).padStart(2, "0")}
       </span>
       <p
         data-testid="month-count"
-        className="text-muted-foreground relative m-0 mb-1.5 text-[11px] font-bold tracking-[0.14em] uppercase"
+        className="relative m-0 mb-1 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase tabular-nums"
       >
         {year} · {count} {count === 1 ? "entry" : "entries"}
       </p>
       <h2
         data-testid="month-title"
-        className="relative m-0 text-[34px] font-extrabold tracking-[-0.03em]"
+        className="relative m-0 text-3xl font-semibold tracking-[-0.03em] text-foreground"
       >
         {name}
       </h2>
     </div>
-  );
+  )
 }
 
 function WeekRow({
@@ -100,12 +97,12 @@ function WeekRow({
   count,
   onToggle,
 }: {
-  sunKey: string;
-  ym: string;
-  sun: Date;
-  open: boolean;
-  count: number;
-  onToggle: () => void;
+  sunKey: string
+  ym: string
+  sun: Date
+  open: boolean
+  count: number
+  onToggle: () => void
 }) {
   return (
     <button
@@ -116,7 +113,7 @@ function WeekRow({
       aria-expanded={open}
       {...(open ? { "data-collapse": sunKey } : { "data-expand": sunKey })}
       onClick={onToggle}
-      className="text-muted-foreground flex w-full items-center gap-3 px-6 pt-8 pb-1 text-left text-[11px] font-bold tracking-[0.14em] uppercase"
+      className="flex w-full items-center gap-3 px-6 pt-7 pb-1 text-left text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
     >
       <span data-testid="week-label" className="flex-none">
         {weekLabel(sun)}
@@ -124,29 +121,29 @@ function WeekRow({
       {count > 0 ? (
         <span
           data-testid="week-count"
-          className="bg-secondary flex-none rounded-full border px-2.5 py-0.5 normal-case tracking-normal"
+          className="flex-none rounded-full border border-border bg-surface px-2.5 py-0.5 tracking-normal normal-case text-muted-foreground tabular-nums text-[11px]"
         >
           {count} {count === 1 ? "entry" : "entries"}
         </span>
       ) : null}
-      <span aria-hidden="true" className="bg-border h-px flex-1" />
+      <span aria-hidden="true" className="h-px flex-1 bg-border-subtle" />
       <ChevronDown
         aria-hidden="true"
         className={`size-3.5 flex-none transition-transform ${open ? "rotate-180" : ""}`}
       />
     </button>
-  );
+  )
 }
 
 function onCardKeyDown(onOpen: () => void) {
   return (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === " ") onOpen();
-  };
+    if (e.key === "Enter" || e.key === " ") onOpen()
+  }
 }
 
 function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
-  const sub = fmtRange(entry);
-  const meta = entryCardMeta([sub, entry.loc, entry.detail]);
+  const sub = fmtRange(entry)
+  const meta = entryCardMeta([sub, entry.loc, entry.detail])
   return (
     <div
       data-testid="event-card"
@@ -156,18 +153,21 @@ function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className="bg-secondary/50 cursor-pointer rounded-xl px-3.5 py-3"
+      className="group cursor-pointer rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface"
     >
-      <div data-testid="event-title" className="text-sm font-semibold">
+      <div data-testid="event-title" className="text-[13px] font-medium leading-snug text-foreground">
         {entry.title}
       </div>
       {meta ? (
-        <div data-testid="event-sub" className="text-muted-foreground mt-0.5 text-xs">
+        <div
+          data-testid="event-sub"
+          className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+        >
           {meta}
         </div>
       ) : null}
     </div>
-  );
+  )
 }
 
 function TaskCard({
@@ -175,13 +175,13 @@ function TaskCard({
   onToggle,
   onOpen,
 }: {
-  entry: DayEntry;
-  onToggle: () => void;
-  onOpen: () => void;
+  entry: DayEntry
+  onToggle: () => void
+  onOpen: () => void
 }) {
-  const sub = fmtRange(entry);
-  const meta = entryCardMeta([sub, entry.detail]);
-  const done = Boolean(entry.done);
+  const sub = fmtRange(entry)
+  const meta = entryCardMeta([sub, entry.detail])
+  const done = Boolean(entry.done)
   return (
     <div
       data-testid="task-card"
@@ -192,7 +192,9 @@ function TaskCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className="bg-secondary/50 flex cursor-pointer items-start gap-2.5 rounded-xl px-3.5 py-3"
+      className={`group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface ${
+        done ? "opacity-60" : ""
+      }`}
     >
       <button
         data-testid="task-toggle"
@@ -201,30 +203,37 @@ function TaskCard({
         aria-label={`Toggle done for ${entry.title}`}
         aria-pressed={done}
         onClick={(e) => {
-          e.stopPropagation();
-          onToggle();
+          e.stopPropagation()
+          onToggle()
         }}
-        className={`mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs ${
-          done ? "bg-primary text-primary-foreground border-transparent" : "text-transparent"
+        className={`mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors ${
+          done
+            ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
+            : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
         }`}
       >
         {done ? "✓" : ""}
       </button>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div
           data-testid="task-title"
-          className={`text-sm font-semibold ${done ? "opacity-60 line-through" : ""}`}
+          className={`text-[13px] font-medium leading-snug ${
+            done ? "line-through text-muted-foreground" : "text-foreground"
+          }`}
         >
           {entry.title}
         </div>
         {meta ? (
-          <div data-testid="task-sub" className="text-muted-foreground mt-0.5 text-xs">
+          <div
+            data-testid="task-sub"
+            className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+          >
             {meta}
           </div>
         ) : null}
       </div>
     </div>
-  );
+  )
 }
 
 function DaySection({
@@ -235,17 +244,17 @@ function DaySection({
   onAdd,
   onOpen,
 }: {
-  day: Date;
-  todayKey: string;
-  entries: DayEntry[];
-  onToggleDone: (id: Id<"entries">) => void;
-  onAdd: (date: string, type: EntryType) => void;
-  onOpen: (entry: DayEntry) => void;
+  day: Date
+  todayKey: string
+  entries: DayEntry[]
+  onToggleDone: (id: Id<"entries">) => void
+  onAdd: (date: string, type: EntryType) => void
+  onOpen: (entry: DayEntry) => void
 }) {
-  const key = isoDay(day);
-  const dow = day.toLocaleDateString("en-US", { weekday: "short" });
-  const sorted = sortEntries(entries);
-  const [chooserOpen, setChooserOpen] = React.useState(false);
+  const key = isoDay(day)
+  const dow = day.toLocaleDateString("en-US", { weekday: "short" })
+  const sorted = sortEntries(entries)
+  const [chooserOpen, setChooserOpen] = React.useState(false)
   return (
     <section
       data-testid="day-section"
@@ -254,23 +263,22 @@ function DaySection({
       id={`d-${key}`}
       className="relative grid scroll-mt-20 grid-cols-[44px_1fr] gap-2 px-6 pt-5"
     >
-      {/* Connector line down the day column, like the original day list. One
-          segment per day, so the segments join up; the head sits above it and
-          its own pieces mask it, which leaves the line showing in the gaps.
-          Left edge 24px (px-6) + half of the 44px column. */}
+      {/* Connector line down the day column */}
       <span
         aria-hidden="true"
-        className="bg-foreground/14 pointer-events-none absolute top-0 bottom-0 left-[45px] w-px"
+        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-border-subtle"
       />
       <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
-        <span className="bg-background text-muted-foreground text-[10px] font-bold tracking-[0.14em] uppercase">
+        <span className="bg-background text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
           {dow}
         </span>
         <span
           data-testid="day-number"
           data-today={key === todayKey ? "true" : "false"}
-          className={`flex size-9 items-center justify-center rounded-full text-lg font-bold tabular-nums ${
-            key === todayKey ? "bg-primary text-primary-foreground" : "bg-background"
+          className={`flex size-9 items-center justify-center rounded-full text-base font-semibold tabular-nums ${
+            key === todayKey
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "bg-background text-foreground"
           }`}
         >
           {day.getDate()}
@@ -282,12 +290,16 @@ function DaySection({
           aria-label={`Add on ${key}`}
           aria-expanded={chooserOpen}
           onClick={() => setChooserOpen((v) => !v)}
-          className="bg-background border-border text-muted-foreground mt-1.5 flex size-6 items-center justify-center rounded-full border text-sm leading-none"
+          className="mt-1.5 flex size-6 items-center justify-center rounded-full border border-border bg-surface text-xs leading-none text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
         >
           {chooserOpen ? "×" : "+"}
         </button>
         {chooserOpen ? (
-          <div data-testid="day-choose" data-choose={key} className="flex flex-col gap-1.5">
+          <div
+            data-testid="day-choose"
+            data-choose={key}
+            className="flex flex-col gap-1.5"
+          >
             <EntryTypeChoice
               render={(t, label) => (
                 <button
@@ -296,10 +308,10 @@ function DaySection({
                   data-pick={t}
                   data-date={key}
                   onClick={() => {
-                    setChooserOpen(false);
-                    onAdd(key, t);
+                    setChooserOpen(false)
+                    onAdd(key, t)
                   }}
-                  className="bg-secondary rounded-full border px-2.5 py-1 text-[11px] font-bold"
+                  className="rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:bg-surface-inset"
                 >
                   {label}
                 </button>
@@ -310,7 +322,10 @@ function DaySection({
       </div>
       <div className="flex min-w-0 flex-col gap-2">
         {sorted.length === 0 ? (
-          <div data-testid="day-empty" className="text-muted-foreground/70 py-1 text-[13px]">
+          <div
+            data-testid="day-empty"
+            className="py-1 text-[12px] text-subtle-foreground"
+          >
             No entries
           </div>
         ) : (
@@ -324,26 +339,26 @@ function DaySection({
               />
             ) : (
               <EventCard key={e._id} entry={e} onOpen={() => onOpen(e)} />
-            ),
+            )
           )
         )}
       </div>
     </section>
-  );
+  )
 }
 
 function SkeletonBar({ className }: { className: string }) {
-  return <div aria-hidden="true" className={`bg-muted ${className}`} />;
+  return <div aria-hidden="true" className={`bg-surface-inset ${className}`} />
 }
 
 function WeekRowSkeleton() {
   return (
-    <div className="flex w-full items-center gap-3 px-6 pt-8 pb-1">
+    <div className="flex w-full items-center gap-3 px-6 pt-7 pb-1">
       <SkeletonBar className="h-3 w-20 flex-none rounded-full" />
-      <span className="bg-border h-px flex-1" />
+      <span className="h-px flex-1 bg-border-subtle" />
       <SkeletonBar className="size-3.5 flex-none rounded-full" />
     </div>
-  );
+  )
 }
 
 function DayRowSkeleton() {
@@ -351,7 +366,7 @@ function DayRowSkeleton() {
     <div className="relative grid grid-cols-[44px_1fr] gap-2 px-6 pt-5">
       <span
         aria-hidden="true"
-        className="bg-foreground/14 pointer-events-none absolute top-0 bottom-0 left-[45px] w-px"
+        className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-border-subtle"
       />
       {/* Mirrors the day column: weekday label, day number, add button. */}
       <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
@@ -359,12 +374,12 @@ function DayRowSkeleton() {
         <SkeletonBar className="size-9 rounded-full" />
         <span
           aria-hidden="true"
-          className="bg-background border-border mt-1.5 size-6 rounded-full border"
+          className="mt-1.5 size-6 rounded-full border border-border bg-surface"
         />
       </div>
       <SkeletonBar className="mt-1.5 h-4 w-24 rounded-md" />
     </div>
-  );
+  )
 }
 
 // Placeholder for the list area. The boot view starts at today's day row, with
@@ -382,13 +397,13 @@ export function TimelineLoading() {
       <DayRowSkeleton />
       <WeekRowSkeleton />
       <WeekRowSkeleton />
-      <div className="mt-7 flex min-h-[150px] flex-col justify-center gap-3 px-[58px] pt-12 pb-11">
+      <div className="mt-7 flex min-h-[140px] flex-col justify-center gap-3 border-y border-border bg-card px-6 sm:px-14 pt-10 pb-9">
         <SkeletonBar className="h-3 w-24 rounded-full" />
         <SkeletonBar className="h-8 w-40 rounded-md" />
       </div>
       <WeekRowSkeleton />
     </div>
-  );
+  )
 }
 
 function MonthChip({
@@ -396,9 +411,9 @@ function MonthChip({
   active,
   onJump,
 }: {
-  idx: number;
-  active: boolean;
-  onJump: (idx: number) => void;
+  idx: number
+  active: boolean
+  onJump: (idx: number) => void
 }) {
   return (
     <button
@@ -407,124 +422,126 @@ function MonthChip({
       data-idx={idx}
       aria-pressed={active}
       onClick={() => onJump(idx)}
-      className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+      className={`flex-none rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
         active
-          ? "chip-on bg-primary text-primary-foreground border-transparent"
-          : "bg-secondary"
+          ? "chip-on border-transparent bg-primary text-primary-foreground font-semibold"
+          : "border-border bg-surface text-muted-foreground hover:bg-surface-inset hover:text-foreground"
       }`}
     >
       {new Date(Math.floor(idx / 12), idx % 12, 1).toLocaleDateString("en-US", {
         month: "short",
       })}
     </button>
-  );
+  )
 }
 
 function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
-  const todayKey = React.useMemo(() => isoDay(new Date()), []);
-  const todayIdx = React.useMemo(() => monthIndex(new Date()), []);
+  const todayKey = React.useMemo(() => isoDay(new Date()), [])
+  const todayIdx = React.useMemo(() => monthIndex(new Date()), [])
   // Prototype bounds: one full year each side of the boot year.
   const { minMonth, maxMonth } = React.useMemo(() => {
-    const y = new Date().getFullYear();
-    return { minMonth: (y - 1) * 12, maxMonth: (y + 1) * 12 + 11 };
-  }, []);
+    const y = new Date().getFullYear()
+    return { minMonth: (y - 1) * 12, maxMonth: (y + 1) * 12 + 11 }
+  }, [])
   // `win` is the month range requested from the backend. Within a session it
   // only grows, one month per scroll gesture at either end, like the original
   // single-file app, so months already on screen are never dropped when new
   // ones load.
   const [win, setWin] = React.useState(() => {
-    const cur = monthIndex(new Date());
-    return { start: cur - 1, end: cur + 1 };
-  });
+    const cur = monthIndex(new Date())
+    return { start: cur - 1, end: cur + 1 }
+  })
   // `view` is the last range that arrived with data. Rendering only from a
   // resolved request/response pair keeps the timeline mounted while the next
   // range loads instead of swapping to the loading skeleton on every gesture.
   const [view, setView] = React.useState<{
-    start: number;
-    end: number;
-    entries: DayEntry[];
-  } | null>(null);
-  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
-  const [extending, setExtending] = React.useState<null | "top" | "bottom">(null);
-  const [fabOpen, setFabOpen] = React.useState(false);
-  const [pickerOpen, setPickerOpen] = React.useState(false);
-  const [pickerIdx, setPickerIdx] = React.useState(todayIdx);
+    start: number
+    end: number
+    entries: DayEntry[]
+  } | null>(null)
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({})
+  const [extending, setExtending] = React.useState<null | "top" | "bottom">(
+    null
+  )
+  const [fabOpen, setFabOpen] = React.useState(false)
+  const [pickerOpen, setPickerOpen] = React.useState(false)
+  const [pickerIdx, setPickerIdx] = React.useState(todayIdx)
   const [title, setTitle] = React.useState(() => {
-    const now = new Date();
-    return titleForYm(`${now.getFullYear()}-${now.getMonth()}`);
-  });
+    const now = new Date()
+    return titleForYm(`${now.getFullYear()}-${now.getMonth()}`)
+  })
+  const [searchOpen, setSearchOpen] = React.useState(false)
   const [sheet, setSheet] = React.useState<{
-    open: boolean;
-    date: string;
-    entry: DayEntry | null;
-    preset: EntryType;
-  }>({ open: false, date: "", entry: null, preset: "task" });
-  const scrolledRef = React.useRef(false);
-  const loadedRef = React.useRef(false);
+    open: boolean
+    date: string
+    entry: DayEntry | null
+    preset: EntryType
+  }>({ open: false, date: "", entry: null, preset: "task" })
+  const scrolledRef = React.useRef(false)
+  const loadedRef = React.useRef(false)
   // Scroll anchor for the grow-upward list. We record the document offset of
   // the timeline node closest to the top of the viewport; when a commit changes
   // that offset (earlier months were prepended), the layout effect below
   // scrolls by the same amount. Document offsets ignore scrolling, so the
   // measure is the inserted height alone and any scrolling the user did while
   // the range query was in flight is preserved.
-  const anchorRef = React.useRef<{ id: string; docTop: number } | null>(null);
-  const pendingJump = React.useRef<{ key: string; smooth: boolean } | null>(null);
-  const chipsRef = React.useRef<HTMLDivElement | null>(null);
-  const headerRef = React.useRef<HTMLDivElement | null>(null);
+  const anchorRef = React.useRef<{ id: string; docTop: number } | null>(null)
+  const pendingJump = React.useRef<{ key: string; smooth: boolean } | null>(
+    null
+  )
+  const chipsRef = React.useRef<HTMLDivElement | null>(null)
+  const headerRef = React.useRef<HTMLDivElement | null>(null)
   // In-flight guard: one scroll gesture adds one month per end. `extending`
   // state drives the loading UI; this ref flips synchronously so rapid scroll
   // ticks cannot queue extra extensions before the new range query resolves.
-  const extendRef = React.useRef<null | "top" | "bottom">(null);
+  const extendRef = React.useRef<null | "top" | "bottom">(null)
 
   const entries = useQuery(listRangeQuery, {
     start: monthStartDay(win.start),
     end: monthEndDay(win.end),
-  });
-  const toggleDone = useMutation(toggleDoneMutation);
+  })
+  const toggleDone = useMutation(toggleDoneMutation)
 
-  loadedRef.current = view !== null;
+  loadedRef.current = view !== null
 
   // Fold each resolved range into the rendered snapshot and release the
   // in-flight guard. When args change, Convex resets `entries` to undefined
   // while it swaps watches, so a defined result always pairs with the
   // current `win`.
   React.useEffect(() => {
-    if (entries === undefined) return;
-    setView({ start: win.start, end: win.end, entries });
-    extendRef.current = null;
-    setExtending(null);
-  }, [entries, win]);
+    if (entries === undefined) return
+    setView({ start: win.start, end: win.end, entries })
+    extendRef.current = null
+    setExtending(null)
+  }, [entries, win])
 
   const scrollToKey = React.useCallback((key: string, smooth = false) => {
-    const p = key.split("-");
+    const p = key.split("-")
     const el =
       document.getElementById(`d-${key}`) ??
-      document.getElementById(`m-${Number(p[0])}-${Number(p[1]) - 1}`);
+      document.getElementById(`m-${Number(p[0])}-${Number(p[1]) - 1}`)
     // User jumps glide like the original; the boot jump and the compensation
     // pass stay instant. Reduced motion keeps the instant jump.
     const animate =
-      smooth &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      smooth && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
     el?.scrollIntoView({
       behavior: animate ? "smooth" : "auto",
       block: "start",
-    });
-    const holder = el?.closest?.("[data-ym]") ?? el;
-    const ym = holder?.getAttribute?.("data-ym");
-    if (ym) setTitle(titleForYm(ym));
-  }, []);
+    })
+    const holder = el?.closest?.("[data-ym]") ?? el
+    const ym = holder?.getAttribute?.("data-ym")
+    if (ym) setTitle(titleForYm(ym))
+  }, [])
 
   const jumpToDate = React.useCallback(
     (key: string) => {
-      const { idx, sunKey } = jumpTarget(key);
-      if (idx < minMonth || idx > maxMonth) return;
-      anchorRef.current = null;
-      setWin((w) => jumpWindow(w, idx));
-      setExpanded((prev) =>
-        prev[sunKey] ? prev : { ...prev, [sunKey]: true },
-      );
-      setPickerOpen(false);
-      pendingJump.current = { key, smooth: true };
+      const { idx, sunKey } = jumpTarget(key)
+      if (idx < minMonth || idx > maxMonth) return
+      anchorRef.current = null
+      setWin((w) => jumpWindow(w, idx))
+      setExpanded((prev) => (prev[sunKey] ? prev : { ...prev, [sunKey]: true }))
+      setPickerOpen(false)
+      pendingJump.current = { key, smooth: true }
       // If the target is already mounted, every state update above can bail
       // out and no commit would consume the pending jump. Try once on the
       // next frame; the layout effect below wins when data is still loading.
@@ -533,102 +550,108 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           pendingJump.current?.key === key &&
           document.getElementById(`d-${key}`)
         ) {
-          pendingJump.current = null;
-          scrollToKey(key, true);
+          pendingJump.current = null
+          scrollToKey(key, true)
         }
-      });
+      })
     },
-    [minMonth, maxMonth, scrollToKey],
-  );
+    [minMonth, maxMonth, scrollToKey]
+  )
 
   // Scroll restoration pass. Runs after every commit on purpose: a jump
   // target or a prepended month can enter the DOM from a landed range query
   // or from a plain week expansion, and compensation must apply in the same
   // paint as the layout change.
   React.useLayoutEffect(() => {
-    if (!view) return;
+    if (!view) return
 
-    const jump = pendingJump.current;
+    const jump = pendingJump.current
     if (jump) {
-      if (!document.getElementById(`d-${jump.key}`)) return;
-      pendingJump.current = null;
-      scrollToKey(jump.key, jump.smooth);
-      return;
+      if (!document.getElementById(`d-${jump.key}`)) return
+      pendingJump.current = null
+      scrollToKey(jump.key, jump.smooth)
+      return
     }
 
-    const anchor = anchorRef.current;
+    const anchor = anchorRef.current
     if (anchor) {
-      const el = document.getElementById(anchor.id);
+      const el = document.getElementById(anchor.id)
       if (!el) {
-        anchorRef.current = null;
+        anchorRef.current = null
       } else {
-        const docTop = el.getBoundingClientRect().top + window.scrollY;
-        const shift = docTop - anchor.docTop;
+        const docTop = el.getBoundingClientRect().top + window.scrollY
+        const shift = docTop - anchor.docTop
         if (shift !== 0) {
-          anchor.docTop = docTop;
-          window.scrollBy(0, shift);
+          anchor.docTop = docTop
+          window.scrollBy(0, shift)
         }
       }
     }
 
     if (!scrolledRef.current) {
-      scrolledRef.current = true;
-      scrollToKey(todayKey);
+      scrolledRef.current = true
+      scrollToKey(todayKey)
     }
-  });
+  })
 
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setPickerOpen(false);
-      setFabOpen(false);
-      setSheet((s) => (s.open ? { ...s, open: false } : s));
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
+      if (e.key === "Escape") {
+        setPickerOpen(false)
+        setFabOpen(false)
+        setSheet((s) => (s.open ? { ...s, open: false } : s))
+        setSearchOpen(false)
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        setSearchOpen((prev) => !prev)
+      }
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [])
 
   React.useEffect(() => {
-    if (!pickerOpen) return;
-    const chips = chipsRef.current;
-    const on = chips?.querySelector(".chip-on");
+    if (!pickerOpen) return
+    const chips = chipsRef.current
+    const on = chips?.querySelector(".chip-on")
     if (chips && on) {
       chips.scrollLeft =
         (on as HTMLElement).offsetLeft -
         chips.offsetLeft -
         chips.clientWidth / 2 +
-        (on as HTMLElement).clientWidth / 2;
+        (on as HTMLElement).clientWidth / 2
     }
-  }, [pickerOpen, pickerIdx]);
+  }, [pickerOpen, pickerIdx])
 
   React.useEffect(() => {
-    let ticking = false;
+    let ticking = false
     const topNode = () => {
-      const headerH = headerRef.current?.offsetHeight ?? 56;
-      const el = document.elementFromPoint(window.innerWidth / 2, headerH + 6);
-      return el?.closest?.("[data-ym]") ?? null;
-    };
+      const headerH = headerRef.current?.offsetHeight ?? 56
+      const el = document.elementFromPoint(window.innerWidth / 2, headerH + 6)
+      return el?.closest?.("[data-ym]") ?? null
+    }
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
+      if (ticking) return
+      ticking = true
       requestAnimationFrame(() => {
-        ticking = false;
-        if (!loadedRef.current) return;
-        const top = topNode();
-        const ym = top?.getAttribute?.("data-ym");
-        if (ym) setTitle(titleForYm(ym));
+        ticking = false
+        if (!loadedRef.current) return
+        const top = topNode()
+        const ym = top?.getAttribute?.("data-ym")
+        if (ym) setTitle(titleForYm(ym))
         // Keep the anchor pointed at the node under the header. The offset is
         // re-read on every tick so the layout effect can tell "content was
         // inserted above this node" apart from "the user scrolled".
         // The point just under the header can land on a node without
         // `data-ym` (empty-state block, gaps); fall back to the first
         // month-scoped element in the document.
-        const anchorEl = top ?? document.querySelector("[data-ym]");
+        const anchorEl = top ?? document.querySelector("[data-ym]")
         if (anchorEl?.id) {
           anchorRef.current = {
             id: anchorEl.id,
             docTop: anchorEl.getBoundingClientRect().top + window.scrollY,
-          };
+          }
         }
         // One extension per end while a query is in flight (extendRef guard).
         // The requested range only grows; months on screen are never dropped.
@@ -637,10 +660,10 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           extendRef.current === null &&
           win.start > minMonth
         ) {
-          extendRef.current = "top";
-          setExtending("top");
-          setWin((w) => ({ start: w.start - 1, end: w.end }));
-          return;
+          extendRef.current = "top"
+          setExtending("top")
+          setWin((w) => ({ start: w.start - 1, end: w.end }))
+          return
         }
         if (
           window.innerHeight + window.scrollY >
@@ -648,65 +671,75 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           extendRef.current === null &&
           win.end < maxMonth
         ) {
-          extendRef.current = "bottom";
-          setExtending("bottom");
-          setWin((w) => ({ start: w.start, end: w.end + 1 }));
+          extendRef.current = "bottom"
+          setExtending("bottom")
+          setWin((w) => ({ start: w.start, end: w.end + 1 }))
         }
-      });
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [minMonth, maxMonth, win.start, win.end]);
+      })
+    }
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [minMonth, maxMonth, win.start, win.end])
 
   const byDate = React.useMemo(() => {
-    const m = new Map<string, DayEntry[]>();
+    const m = new Map<string, DayEntry[]>()
     for (const e of view?.entries ?? []) {
-      const list = m.get(e.date);
-      if (list) list.push(e);
-      else m.set(e.date, [e]);
+      const list = m.get(e.date)
+      if (list) list.push(e)
+      else m.set(e.date, [e])
     }
-    return m;
-  }, [view]);
+    return m
+  }, [view])
 
   const onToggleDone = React.useCallback(
     (id: Id<"entries">) => {
-      void toggleDone({ id });
+      void toggleDone({ id })
     },
-    [toggleDone],
-  );
+    [toggleDone]
+  )
 
   const openNew = React.useCallback(
     (date: string, preset: EntryType) =>
       setSheet({ open: true, date, entry: null, preset }),
-    [],
-  );
-  const openEdit = React.useCallback((entry: DayEntry) =>
-    setSheet({ open: true, date: entry.date, entry, preset: entry.type }),
-  []);
+    []
+  )
+  const openEdit = React.useCallback(
+    (entry: DayEntry) =>
+      setSheet({ open: true, date: entry.date, entry, preset: entry.type }),
+    []
+  )
 
-  const pickerYear = Math.floor(pickerIdx / 12);
-  const pickerMonth = pickerIdx % 12;
-  const pickerCells = miniGridCells(pickerYear, pickerMonth, todayKey);
-  const chipRange: number[] = [];
-  for (let i = pickerIdx - 12; i <= pickerIdx + 12; i++) chipRange.push(i);
+  const onSelectSearchEntry = React.useCallback(
+    (entry: DayEntry) => {
+      jumpToDate(entry.date)
+      openEdit(entry)
+    },
+    [jumpToDate, openEdit]
+  )
+
+  const pickerYear = Math.floor(pickerIdx / 12)
+  const pickerMonth = pickerIdx % 12
+  const pickerCells = miniGridCells(pickerYear, pickerMonth, todayKey)
+  const chipRange: number[] = []
+  for (let i = pickerIdx - 12; i <= pickerIdx + 12; i++) chipRange.push(i)
   const wdNames = [0, 1, 2, 3, 4, 5, 6].map((i) =>
     new Date(2026, 9, 5 + i).toLocaleDateString("en-US", {
       weekday: "narrow",
-    }),
-  );
+    })
+  )
 
   const onChipJump = (idx: number) => {
-    setPickerIdx(idx);
-    const y = Math.floor(idx / 12);
-    const m = idx % 12;
-    jumpToDate(`${y}-${String(m + 1).padStart(2, "0")}-01`);
-  };
+    setPickerIdx(idx)
+    const y = Math.floor(idx / 12)
+    const m = idx % 12
+    jumpToDate(`${y}-${String(m + 1).padStart(2, "0")}-01`)
+  }
 
   const header = (
     <div
       ref={headerRef}
       data-testid="timeline-header"
-      className="bg-background/95 sticky top-0 z-20 border-b backdrop-blur"
+      className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md"
     >
       <div className="mx-auto flex w-full max-w-[1000px] items-center justify-between px-6 py-3">
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -716,7 +749,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               data-testid="timeline-title"
               aria-label="Pick a date"
               aria-expanded={pickerOpen}
-              className="flex items-center gap-1.5 text-lg font-semibold tracking-tight"
+              className="flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground"
             >
               <span data-testid="timeline-title-text">{title}</span>
               <ChevronDown
@@ -736,11 +769,11 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 data-testid="picker-prev"
                 aria-label="Previous month"
                 onClick={() => setPickerIdx((i) => Math.max(minMonth, i - 1))}
-                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
               </button>
-              <p data-testid="picker-label" className="text-sm font-semibold">
+              <p data-testid="picker-label" className="text-sm font-semibold text-foreground">
                 {titleForYm(`${pickerYear}-${pickerMonth}`)}
               </p>
               <button
@@ -748,7 +781,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                 data-testid="picker-next"
                 aria-label="Next month"
                 onClick={() => setPickerIdx((i) => Math.min(maxMonth, i + 1))}
-                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <ChevronRight aria-hidden="true" className="size-4" />
               </button>
@@ -761,7 +794,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               {chipRange.map((idx) =>
                 idx % 12 === 0 ? (
                   <React.Fragment key={idx}>
-                    <span className="text-muted-foreground flex-none px-1 text-[11px] font-bold">
+                    <span className="flex-none px-1 text-[11px] font-bold text-muted-foreground">
                       {Math.floor(idx / 12)}
                     </span>
                     <MonthChip
@@ -777,7 +810,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     active={idx === pickerIdx}
                     onJump={onChipJump}
                   />
-                ),
+                )
               )}
             </div>
             <div
@@ -787,7 +820,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               {wdNames.map((w, i) => (
                 <span
                   key={i}
-                  className="text-muted-foreground py-1 text-[10px] font-bold"
+                  className="py-1 text-[10px] font-semibold text-muted-foreground uppercase"
                 >
                   {w}
                 </span>
@@ -801,17 +834,17 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                     data-jump={c.key}
                     aria-label={c.key}
                     onClick={() => jumpToDate(c.key as string)}
-                    className={`flex size-8 items-center justify-center rounded-full text-[13px] tabular-nums ${
+                    className={`flex size-8 items-center justify-center rounded-full text-[13px] tabular-nums transition-colors ${
                       c.isToday
-                        ? "bg-primary text-primary-foreground font-bold"
-                        : "hover:bg-secondary"
+                        ? "bg-primary font-semibold text-primary-foreground shadow-xs"
+                        : "hover:bg-surface-inset"
                     }`}
                   >
                     {c.day}
                   </button>
                 ) : (
                   <span key={`b-${i}`} />
-                ),
+                )
               )}
             </div>
           </PopoverContent>
@@ -821,9 +854,24 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
             <TooltipTrigger asChild>
               <button
                 type="button"
+                data-testid="search-btn"
+                aria-label="Search entries"
+                onClick={() => setSearchOpen(true)}
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
+              >
+                <Search aria-hidden="true" className="size-4" />
+                <span className="sr-only">Search</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Search (Cmd+K)</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
                 data-testid="today-btn"
                 onClick={() => jumpToDate(todayKey)}
-                className="bg-secondary flex size-8 items-center justify-center rounded-full"
+                className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-surface-inset hover:text-foreground"
               >
                 <CalendarDays aria-hidden="true" className="size-4" />
                 <span className="sr-only">Today</span>
@@ -841,88 +889,142 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         </div>
       </div>
     </div>
-  );
+  )
 
   if (view === null)
     return (
       <>
         {header}
         <TimelineLoading />
+        <SearchDialog
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onSelectEntry={onSelectSearchEntry}
+        />
       </>
-    );
+    )
 
-  const months: { idx: number; year: number; month: number }[] = [];
+  const months: { idx: number; year: number; month: number }[] = []
   for (let i = view.start; i <= view.end; i++) {
-    months.push({ idx: i, year: Math.floor(i / 12), month: i % 12 });
+    months.push({ idx: i, year: Math.floor(i / 12), month: i % 12 })
   }
 
   const toggleWeek = (sunKey: string) =>
     setExpanded((prev) => {
       if (prev[sunKey]) {
-        const next = { ...prev };
-        delete next[sunKey];
-        return next;
+        const next = { ...prev }
+        delete next[sunKey]
+        return next
       }
-      return { ...prev, [sunKey]: true };
-    });
+      return { ...prev, [sunKey]: true }
+    })
 
   return (
     <>
       {header}
-      <div data-testid="timeline" className="flex flex-col pb-16 [overflow-anchor:none]">
-      {view.entries.length === 0 ? (
-        <div data-testid="timeline-empty" className="px-6 pt-8 pb-2 text-center">
-          <h2 className="text-base font-medium">No entries yet</h2>
-          <p className="text-muted-foreground mx-auto mt-1 max-w-sm text-sm">
-            Your timeline is empty. New entries will appear here once you add
-            them.
-          </p>
-        </div>
-      ) : null}
-      {extending === "top" ? (
-        <div
-          data-testid="timeline-extending"
-          aria-busy="true"
-          aria-label="Loading earlier months"
-          className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center"
-        >
-          <p className="bg-secondary text-muted-foreground rounded-full border px-3 py-1 text-xs shadow">
-            Loading earlier months…
-          </p>
-        </div>
-      ) : null}
-      {months.map(({ idx, year, month }) => {
-        const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
-        const count = view.entries.filter((e) => e.date.startsWith(prefix)).length;
-        return (
-          <React.Fragment key={idx}>
-            <MonthBanner
-              year={year}
-              month={month}
-              count={count}
-              first={idx === view.start}
-            />
-            {sundaysOfMonth(year, month).map((sun) => {
-              const sunKey = isoDay(sun);
-              const days = daysOfWeek(sun);
-              const ym = `${sun.getFullYear()}-${sun.getMonth()}`;
-              const count = days.reduce(
-                (n, d) => n + (byDate.get(isoDay(d))?.length ?? 0),
-                0,
-              );
-              const isOpen = Boolean(expanded[sunKey]);
-              if (isOpen) {
+      <div
+        data-testid="timeline"
+        className="flex flex-col pb-16 [overflow-anchor:none]"
+      >
+        {view.entries.length === 0 ? (
+          <div
+            data-testid="timeline-empty"
+            className="px-6 pt-8 pb-2 text-center"
+          >
+            <h2 className="text-base font-medium">No entries yet</h2>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+              Your timeline is empty. New entries will appear here once you add
+              them.
+            </p>
+          </div>
+        ) : null}
+        {extending === "top" ? (
+          <div
+            data-testid="timeline-extending"
+            aria-busy="true"
+            aria-label="Loading earlier months"
+            className="pointer-events-none fixed inset-x-0 top-14 z-30 flex justify-center"
+          >
+            <p className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted-foreground shadow-md">
+              Loading earlier months…
+            </p>
+          </div>
+        ) : null}
+        {months.map(({ idx, year, month }) => {
+          const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
+          const count = view.entries.filter((e) =>
+            e.date.startsWith(prefix)
+          ).length
+          return (
+            <React.Fragment key={idx}>
+              <MonthBanner
+                year={year}
+                month={month}
+                count={count}
+                first={idx === view.start}
+              />
+              {sundaysOfMonth(year, month).map((sun) => {
+                const sunKey = isoDay(sun)
+                const days = daysOfWeek(sun)
+                const ym = `${sun.getFullYear()}-${sun.getMonth()}`
+                const count = days.reduce(
+                  (n, d) => n + (byDate.get(isoDay(d))?.length ?? 0),
+                  0
+                )
+                const isOpen = Boolean(expanded[sunKey])
+                if (isOpen) {
+                  return (
+                    <React.Fragment key={sunKey}>
+                      <WeekRow
+                        sunKey={sunKey}
+                        ym={ym}
+                        sun={sun}
+                        open
+                        count={count}
+                        onToggle={() => toggleWeek(sunKey)}
+                      />
+                      {days.map((d) => (
+                        <DaySection
+                          key={isoDay(d)}
+                          day={d}
+                          todayKey={todayKey}
+                          entries={byDate.get(isoDay(d)) ?? []}
+                          onToggleDone={onToggleDone}
+                          onAdd={openNew}
+                          onOpen={openEdit}
+                        />
+                      ))}
+                    </React.Fragment>
+                  )
+                }
+                const hits = days.filter((d) => {
+                  const k = isoDay(d)
+                  return k === todayKey || byDate.has(k)
+                })
+                if (hits.length === 0) {
+                  return (
+                    <WeekRow
+                      key={sunKey}
+                      sunKey={sunKey}
+                      ym={ym}
+                      sun={sun}
+                      open={false}
+                      count={0}
+                      onToggle={() => toggleWeek(sunKey)}
+                    />
+                  )
+                }
                 return (
                   <React.Fragment key={sunKey}>
                     <WeekRow
                       sunKey={sunKey}
                       ym={ym}
                       sun={sun}
-                      open
+                      open={false}
                       count={count}
                       onToggle={() => toggleWeek(sunKey)}
                     />
-                    {days.map((d) => (
+                    {hits.map((d) => (
                       <DaySection
                         key={isoDay(d)}
                         day={d}
@@ -934,121 +1036,88 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                       />
                     ))}
                   </React.Fragment>
-                );
-              }
-              const hits = days.filter((d) => {
-                const k = isoDay(d);
-                return k === todayKey || byDate.has(k);
-              });
-              if (hits.length === 0) {
-                return (
-                  <WeekRow
-                    key={sunKey}
-                    sunKey={sunKey}
-                    ym={ym}
-                    sun={sun}
-                    open={false}
-                    count={0}
-                    onToggle={() => toggleWeek(sunKey)}
-                  />
-                );
-              }
-              return (
-                <React.Fragment key={sunKey}>
-                  <WeekRow
-                    sunKey={sunKey}
-                    ym={ym}
-                    sun={sun}
-                    open={false}
-                    count={count}
-                    onToggle={() => toggleWeek(sunKey)}
-                  />
-                  {hits.map((d) => (
-                    <DaySection
-                      key={isoDay(d)}
-                      day={d}
-                      todayKey={todayKey}
-                      entries={byDate.get(isoDay(d)) ?? []}
-                      onToggleDone={onToggleDone}
-                      onAdd={openNew}
-                      onOpen={openEdit}
-                    />
-                  ))}
-                </React.Fragment>
-              );
-            })}
-          </React.Fragment>
-        );
-      })}
-      {extending === "bottom" ? (
-        <div
-          data-testid="timeline-extending"
-          aria-busy="true"
-          aria-label="Loading later months"
-          className="text-muted-foreground px-6 py-6 text-center text-sm"
-        >
-          Loading later months…
-        </div>
-      ) : null}
-      {fabOpen ? (
-        <div
-          data-testid="fab-scrim"
-          aria-hidden="true"
-          onClick={() => setFabOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60"
-        />
-      ) : null}
-      <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-2.5">
-        {fabOpen ? (
-          <div data-testid="fab-speeddial" className="flex flex-col items-end gap-2.5">
-            <EntryTypeChoice
-              render={(t, label) => (
-                <button
-                  type="button"
-                  data-testid={`fab-create-${t}`}
-                  onClick={() => {
-                    setFabOpen(false);
-                    openNew(todayKey, t);
-                  }}
-                  className="bg-secondary rounded-full px-5 py-3.5 text-[15px] font-semibold shadow-lg"
-                >
-                  {label}
-                </button>
-              )}
-            />
+                )
+              })}
+            </React.Fragment>
+          )
+        })}
+        {extending === "bottom" ? (
+          <div
+            data-testid="timeline-extending"
+            aria-busy="true"
+            aria-label="Loading later months"
+            className="px-6 py-6 text-center text-sm text-muted-foreground"
+          >
+            Loading later months…
           </div>
         ) : null}
-        <button
-          type="button"
-          data-testid="fab"
-          aria-label={fabOpen ? "Close" : "Add entry"}
-          aria-expanded={fabOpen}
-          onClick={() => setFabOpen((v) => !v)}
-          className="bg-primary text-primary-foreground flex size-14 items-center justify-center rounded-full text-3xl leading-none shadow-lg"
-        >
-          <span aria-hidden="true" className={fabOpen ? "rotate-45" : ""}>
-            +
-          </span>
-        </button>
-      </div>
-      <EntrySheet
-        open={sheet.open}
-        onOpenChange={(open) => setSheet((s) => ({ ...s, open }))}
-        date={sheet.date || todayKey}
-        entry={sheet.entry}
-        preset={sheet.preset}
-      />
+        {fabOpen ? (
+          <div
+            data-testid="fab-scrim"
+            aria-hidden="true"
+            onClick={() => setFabOpen(false)}
+            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-xs"
+          />
+        ) : null}
+        <div className="fixed right-5 bottom-5 z-40 flex flex-col items-end gap-2.5">
+          {fabOpen ? (
+            <div
+              data-testid="fab-speeddial"
+              className="flex flex-col items-end gap-2.5"
+            >
+              <EntryTypeChoice
+                render={(t, label) => (
+                  <button
+                    type="button"
+                    data-testid={`fab-create-${t}`}
+                    onClick={() => {
+                      setFabOpen(false)
+                      openNew(todayKey, t)
+                    }}
+                    className="rounded-full border border-border bg-surface px-5 py-3 text-[14px] font-medium text-foreground shadow-lg transition-colors hover:bg-surface-inset"
+                  >
+                    {label}
+                  </button>
+                )}
+              />
+            </div>
+          ) : null}
+          <button
+            type="button"
+            data-testid="fab"
+            aria-label={fabOpen ? "Close" : "Add entry"}
+            aria-expanded={fabOpen}
+            onClick={() => setFabOpen((v) => !v)}
+            className="flex size-14 items-center justify-center rounded-full bg-primary text-3xl leading-none text-primary-foreground shadow-xl transition-transform active:scale-95"
+          >
+            <span aria-hidden="true" className={fabOpen ? "rotate-45" : ""}>
+              +
+            </span>
+          </button>
+        </div>
+        <SearchDialog
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onSelectEntry={onSelectSearchEntry}
+        />
+        <EntrySheet
+          open={sheet.open}
+          onOpenChange={(open) => setSheet((s) => ({ ...s, open }))}
+          date={sheet.date || todayKey}
+          entry={sheet.entry}
+          preset={sheet.preset}
+        />
       </div>
     </>
-  );
+  )
 }
 
 export default function Timeline({
   accountSlot,
 }: {
-  accountSlot?: React.ReactNode;
+  accountSlot?: React.ReactNode
 }) {
-  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+  const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL
   if (!convexUrl) {
     return (
       <div
@@ -1056,11 +1125,11 @@ export default function Timeline({
         className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-center"
       >
         <h2 className="text-base font-medium">Timeline unavailable</h2>
-        <p className="text-muted-foreground max-w-sm text-sm">
+        <p className="max-w-sm text-sm text-muted-foreground">
           Add NEXT_PUBLIC_CONVEX_URL to load your entries.
         </p>
       </div>
-    );
+    )
   }
-  return <TimelineConnected accountSlot={accountSlot} />;
+  return <TimelineConnected accountSlot={accountSlot} />
 }
