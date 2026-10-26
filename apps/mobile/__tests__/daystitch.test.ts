@@ -1,4 +1,11 @@
-import { sundaysOfMonth, daysOfWeek, isoDay } from "@/lib/daystitch";
+import {
+  sundaysOfMonth,
+  daysOfWeek,
+  isoDay,
+  filterEntries,
+  type DayEntry,
+  type TimelineFilter,
+} from "@/lib/daystitch";
 
 describe("sundaysOfMonth", () => {
   it("includes the Sunday containing the 1st of the month so no days are dropped", () => {
@@ -57,5 +64,59 @@ describe("sundaysOfMonth", () => {
     for (let day = 1; day <= 31; day++) {
       expect(coveredDays.has(day)).toBe(true);
     }
+  });
+});
+
+describe("filterEntries", () => {
+  const sampleEntries: DayEntry[] = [
+    {
+      _id: "e1",
+      userId: "u1",
+      date: "2026-10-27",
+      title: "Team Meeting",
+      type: "event",
+      start: "10:00",
+      end: "11:00",
+    },
+    {
+      _id: "t1",
+      userId: "u1",
+      date: "2026-10-27",
+      title: "Active Task",
+      type: "task",
+      done: false,
+    },
+    {
+      _id: "t2",
+      userId: "u1",
+      date: "2026-10-27",
+      title: "Done Task",
+      type: "task",
+      done: true,
+    },
+  ];
+
+  it("returns all entries when filter is all", () => {
+    expect(filterEntries(sampleEntries, "all")).toEqual(sampleEntries);
+  });
+
+  it("filters only tasks when filter is tasks", () => {
+    const result = filterEntries(sampleEntries, "tasks");
+    expect(result.map((e) => e._id)).toEqual(["t1", "t2"]);
+  });
+
+  it("filters only events when filter is events", () => {
+    const result = filterEntries(sampleEntries, "events");
+    expect(result.map((e) => e._id)).toEqual(["e1"]);
+  });
+
+  it("filters only uncompleted tasks when filter is pending", () => {
+    const result = filterEntries(sampleEntries, "pending");
+    expect(result.map((e) => e._id)).toEqual(["t1"]);
+  });
+
+  it("returns empty array when input is empty", () => {
+    expect(filterEntries([], "all")).toEqual([]);
+    expect(filterEntries([], "pending")).toEqual([]);
   });
 });
