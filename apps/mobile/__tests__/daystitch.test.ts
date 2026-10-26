@@ -4,7 +4,6 @@ import {
   isoDay,
   filterEntries,
   type DayEntry,
-  type TimelineFilter,
 } from "@/lib/daystitch";
 
 describe("sundaysOfMonth", () => {
