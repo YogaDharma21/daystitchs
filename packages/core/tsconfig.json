@@ -1,11 +1,10 @@
 {
   "extends": "@workspace/typescript-config/base.json",
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "rootDir": "./src",
-    "outDir": "./dist"
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["src/self-check.ts"]
+  "include": ["src/**/*"]
 }

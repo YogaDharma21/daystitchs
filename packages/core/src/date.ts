@@ -1,4 +1,4 @@
-import type { EntryDraft, EntryType, MiniCell } from "./types.js";
+import type { EntryDraft, EntryType, MiniCell } from "./types";
 
 export function isoDay(d: Date): string {
   const y = d.getFullYear();
@@ -76,7 +76,8 @@ export function fmtRange(e: {
   if (e.type !== "task" && e.type !== "event") {
     return e.start ? fmtTime(e.start) : "";
   }
-  return RANGE_TEXT_BY_TYPE[e.type](e);
+  const formatter = RANGE_TEXT_BY_TYPE[e.type];
+  return formatter ? formatter(e) : "";
 }
 
 /** Join card sub-line parts (time range, location, detail), skipping blanks. */
@@ -186,6 +187,7 @@ export function entryDateSummary(d: EntryDraft): string {
           { weekday: "long", month: "long", day: "numeric" },
         )
       : "Pick a date";
-  const t = RANGE_TEXT_BY_TYPE[d.type](d, " - ");
+  const formatter = RANGE_TEXT_BY_TYPE[d.type];
+  const t = formatter ? formatter(d, " - ") : "";
   return t ? `${dateStr}  ${t}` : dateStr;
 }

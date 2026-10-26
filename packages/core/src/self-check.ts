@@ -4,10 +4,12 @@ import {
   sundaysOfMonth,
   daysOfWeek,
   fmtRange,
+} from "./date.ts";
+import {
   entryDraftError,
   assertEntryDraft,
   ENTRY_LIMITS,
-} from "../dist/index.js";
+} from "./rules.ts";
 
 function assert(condition: boolean, msg?: string): void {
   if (!condition) throw new Error(msg ?? "Assertion failed");

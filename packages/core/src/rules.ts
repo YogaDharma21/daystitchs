@@ -1,4 +1,4 @@
-import type { EntryDraft } from "./types.js";
+import type { EntryDraft } from "./types";
 
 export const ENTRY_LIMITS = {
   title: 80,
