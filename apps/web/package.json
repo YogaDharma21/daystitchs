@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.14",
+    "@workspace/core": "workspace:*",
     "@workspace/ui": "workspace:*",
     "cn": "^0.4.0",
     "convex": "^1.46.0",

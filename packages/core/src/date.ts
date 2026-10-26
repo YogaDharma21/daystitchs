@@ -1,4 +1,4 @@
-import type { EntryDraft, EntryType, MiniCell } from "./types.ts";
+import type { EntryDraft, EntryType, MiniCell } from "./types.js";
 
 export function isoDay(d: Date): string {
   const y = d.getFullYear();

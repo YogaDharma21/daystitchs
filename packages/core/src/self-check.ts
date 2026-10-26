@@ -7,7 +7,7 @@ import {
   entryDraftError,
   assertEntryDraft,
   ENTRY_LIMITS,
-} from "./index.ts";
+} from "../dist/index.js";
 
 function assert(condition: boolean, msg?: string): void {
   if (!condition) throw new Error(msg ?? "Assertion failed");
