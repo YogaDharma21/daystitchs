@@ -76,7 +76,7 @@ export function fmtRange(e: {
   if (e.type !== "task" && e.type !== "event") {
     return e.start ? fmtTime(e.start) : "";
   }
-  const formatter = RANGE_TEXT_BY_TYPE[e.type];
+  const formatter = RANGE_TEXT_BY_TYPE[e.type as EntryType];
   return formatter ? formatter(e) : "";
 }
 

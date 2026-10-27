@@ -1,6 +1,7 @@
 export {
   type EntryType,
   type DayEntry,
+  type MiniCell,
   isoDay,
   parseDay,
   sundayOf,
@@ -14,6 +15,9 @@ export {
   sortEntries,
   monthIndex,
   titleForYm,
+  miniGridCells,
+  jumpWindow,
+  jumpTarget,
   monthStartDay,
   monthEndDay,
   daysOfWeek,
