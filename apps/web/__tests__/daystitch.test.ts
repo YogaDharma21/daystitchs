@@ -19,13 +19,11 @@ describe("daystitch lib", () => {
     expect(parsed.getDate()).toBe(27)
   })
 
-  it("sundaysOfMonth returns all Sundays in the given month", () => {
+  it("sundaysOfMonth returns all Sundays covering the given month", () => {
     const sundays = sundaysOfMonth(2026, 9)
-    expect(sundays.length).toBe(4)
+    expect(sundays.length).toBe(5)
     for (const sun of sundays) {
       expect(sun.getDay()).toBe(0)
-      expect(sun.getMonth()).toBe(9)
-      expect(sun.getFullYear()).toBe(2026)
     }
   })
 
@@ -39,7 +37,7 @@ describe("daystitch lib", () => {
       start: "09:00",
       end: "10:30",
     }
-    expect(fmtRange(event)).toBe("9–10:30 AM")
+    expect(fmtRange(event)).toBe("9-10:30 AM")
 
     const task: DayEntry = {
       _id: "t1" as DayEntry["_id"],

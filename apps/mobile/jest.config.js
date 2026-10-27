@@ -5,6 +5,8 @@ module.exports = {
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@workspace/core$": "<rootDir>/../../packages/core/src/index.ts",
+    "^@workspace/core/(.*)$": "<rootDir>/../../packages/core/src/$1",
   },
   setupFilesAfterEnv: [],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
