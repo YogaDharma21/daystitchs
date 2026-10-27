@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "lint": "eslint",
+    "test": "tsc src/components/snackbar.tsx --jsx react-jsx --module NodeNext --moduleResolution NodeNext --target ESNext --rootDir src --outDir src/components/.test-dist && node --test src/components/snackbar.test.js && node -e \"fs.rmSync('src/components/.test-dist', {recursive:true,force:true})\"",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit"
   },

@@ -43,6 +43,8 @@ import type { Id } from "@/convex/_generated/dataModel"
 import EntrySheet from "@/components/entry-sheet"
 import SearchDialog from "@/components/search-dialog"
 import { EntryTypeChoice } from "@/components/entry-type-choice"
+import { Snackbar } from "@workspace/ui/components/snackbar"
+import { useDelayedDeletion } from "@/lib/use-delayed-deletion"
 
 function MonthBanner({
   year,
@@ -510,6 +512,8 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     end: monthEndDay(win.end),
   })
   const toggleDone = useMutation(toggleDoneMutation)
+  const { pendingEntry, stageDelete, undoDelete, isPending } =
+    useDelayedDeletion()
 
   loadedRef.current = view !== null
 
@@ -690,15 +694,20 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [minMonth, maxMonth, win.start, win.end])
 
+  const activeEntries = React.useMemo(() => {
+    if (!view) return []
+    return view.entries.filter((e) => !isPending(e._id))
+  }, [view, isPending])
+
   const byDate = React.useMemo(() => {
     const m = new Map<string, DayEntry[]>()
-    for (const e of view?.entries ?? []) {
+    for (const e of activeEntries) {
       const list = m.get(e.date)
       if (list) list.push(e)
       else m.set(e.date, [e])
     }
     return m
-  }, [view])
+  }, [activeEntries])
 
   const onToggleDone = React.useCallback(
     (id: Id<"entries">) => {
@@ -935,7 +944,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         data-testid="timeline"
         className="flex flex-col pb-16 [overflow-anchor:none]"
       >
-        {view.entries.length === 0 ? (
+        {activeEntries.length === 0 ? (
           <div
             data-testid="timeline-empty"
             className="px-6 pt-8 pb-2 text-center"
@@ -961,7 +970,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         ) : null}
         {months.map(({ idx, year, month }) => {
           const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
-          const count = view.entries.filter((e) =>
+          const count = activeEntries.filter((e) =>
             e.date.startsWith(prefix)
           ).length
           return (
@@ -1115,6 +1124,18 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           date={sheet.date || todayKey}
           entry={sheet.entry}
           preset={sheet.preset}
+          onDeleteEntry={stageDelete}
+        />
+        <Snackbar
+          open={pendingEntry !== null}
+          message={
+            pendingEntry
+              ? `${pendingEntry.type === "event" ? "Event" : "Task"} deleted`
+              : ""
+          }
+          actionLabel="Undo"
+          onAction={undoDelete}
+          data-testid="undo-snackbar"
         />
       </div>
     </>
