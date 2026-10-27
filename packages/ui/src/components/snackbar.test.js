@@ -2,7 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import React from "react"
 import { renderToString } from "react-dom/server"
-import { Snackbar } from "./.test-dist/snackbar.js"
+import { Snackbar } from "./.test-dist/components/snackbar.js"
 
 test("Snackbar renders message and action when open", () => {
   const html = renderToString(

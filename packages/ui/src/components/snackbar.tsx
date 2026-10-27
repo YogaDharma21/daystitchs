@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from "cn"
+import { cn } from "@workspace/ui/lib/utils"
 
 export interface SnackbarProps extends React.ComponentProps<"div"> {
   open: boolean
