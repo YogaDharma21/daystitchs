@@ -16,7 +16,6 @@
   "dependencies": {
     "@clerk/nextjs": "^7.9.14",
     "@workspace/ui": "workspace:*",
-    "cn": "^0.4.0",
     "convex": "^1.46.0",
     "lucide-react": "^1.55.0",
     "next": "16.4.0",

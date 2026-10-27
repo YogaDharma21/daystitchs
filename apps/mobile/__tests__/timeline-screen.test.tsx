@@ -7,7 +7,6 @@ import {
   createEntryMutation,
   updateEntryMutation,
   removeEntryMutation,
-  toggleDoneMutation,
 } from "@/lib/entries-api";
 
 const mockToggleDone = jest.fn();
@@ -355,5 +354,61 @@ describe("TimelineScreen", () => {
     });
 
     expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it("renders filter bar with all, tasks, events, and pending chips", async () => {
+    await render(<TimelineScreen />);
+
+    expect(screen.getByTestId("timeline-filter-bar")).toBeTruthy();
+    expect(screen.getByTestId("filter-chip-all")).toBeTruthy();
+    expect(screen.getByTestId("filter-chip-tasks")).toBeTruthy();
+    expect(screen.getByTestId("filter-chip-events")).toBeTruthy();
+    expect(screen.getByTestId("filter-chip-pending")).toBeTruthy();
+  });
+
+  it("filters timeline to tasks only when tapping Tasks chip", async () => {
+    await render(<TimelineScreen />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("filter-chip-tasks"));
+    });
+
+    expect(screen.getByTestId("task-card-t1")).toBeTruthy();
+    expect(screen.getByTestId("task-card-t2")).toBeTruthy();
+    expect(screen.queryByTestId("event-card-e1")).toBeNull();
+    expect(screen.queryByTestId("event-card-e2")).toBeNull();
+  });
+
+  it("filters timeline to events only when tapping Events chip", async () => {
+    await render(<TimelineScreen />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("filter-chip-events"));
+    });
+
+    expect(screen.getByTestId("event-card-e1")).toBeTruthy();
+    expect(screen.getByTestId("event-card-e2")).toBeTruthy();
+    expect(screen.queryByTestId("task-card-t1")).toBeNull();
+    expect(screen.queryByTestId("task-card-t2")).toBeNull();
+  });
+
+  it("filters timeline to pending tasks only when tapping Pending chip", async () => {
+    await render(<TimelineScreen />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("filter-chip-pending"));
+    });
+
+    expect(screen.getByTestId("task-card-t1")).toBeTruthy();
+    expect(screen.getByTestId("task-card-t2")).toBeTruthy();
+    expect(screen.queryByTestId("event-card-e1")).toBeNull();
+
+    const checkbox = within(screen.getByTestId("task-card-t1")).getByTestId("task-checkbox");
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
+
+    expect(screen.queryByTestId("task-card-t1")).toBeNull();
+    expect(screen.getByTestId("task-card-t2")).toBeTruthy();
   });
 });
