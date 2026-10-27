@@ -15,7 +15,7 @@ import {
   User,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { cn } from "cn"
+import { cn } from "@workspace/ui/lib/utils"
 
 interface LandingPageProps {
   signInTrigger?: React.ReactNode
