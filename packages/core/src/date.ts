@@ -1,4 +1,4 @@
-import type { EntryDraft, EntryType, MiniCell } from "./types";
+import type { DayEntry, EntryDraft, EntryType, MiniCell, NowAndNextResult } from "./types";
 
 export function isoDay(d: Date): string {
   const y = d.getFullYear();
@@ -190,4 +190,57 @@ export function entryDateSummary(d: EntryDraft): string {
   const formatter = RANGE_TEXT_BY_TYPE[d.type];
   const t = formatter ? formatter(d, " - ") : "";
   return t ? `${dateStr}  ${t}` : dateStr;
+}
+
+export function timeToMinutes(timeStr: string): number {
+  const parts = timeStr.split(":");
+  const hours = Number(parts[0]);
+  const minutes = Number(parts[1]);
+  return (isNaN(hours) ? 0 : hours) * 60 + (isNaN(minutes) ? 0 : minutes);
+}
+
+export function getNowAndNext<TId = string>(
+  entries: DayEntry<TId>[],
+  now: Date = new Date(),
+): NowAndNextResult<TId> {
+  const todayKey = isoDay(now);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  const todayEntries = entries.filter((e) => e.date === todayKey);
+
+  let activeEvent: DayEntry<TId> | null = null;
+  const events = todayEntries.filter((e) => e.type === "event" && e.start);
+
+  for (const ev of events) {
+    const startMin = timeToMinutes(ev.start!);
+    const endMin = ev.end ? timeToMinutes(ev.end) : startMin + 30;
+    if (startMin <= nowMin && nowMin < endMin) {
+      if (
+        !activeEvent ||
+        timeToMinutes(ev.start!) > timeToMinutes(activeEvent.start!)
+      ) {
+        activeEvent = ev;
+      }
+    }
+  }
+
+  const pendingTasks = todayEntries.filter((e) => e.type === "task" && !e.done);
+
+  const upcomingTimedTasks = pendingTasks
+    .filter((t) => t.time && timeToMinutes(t.time) >= nowMin)
+    .sort((a, b) => timeToMinutes(a.time!) - timeToMinutes(b.time!));
+
+  const untimedTasks = pendingTasks.filter((t) => !t.time);
+
+  const overdueTimedTasks = pendingTasks
+    .filter((t) => t.time && timeToMinutes(t.time) < nowMin)
+    .sort((a, b) => timeToMinutes(a.time!) - timeToMinutes(b.time!));
+
+  const nextTask =
+    upcomingTimedTasks[0] ?? untimedTasks[0] ?? overdueTimedTasks[0] ?? null;
+
+  return {
+    now: activeEvent,
+    next: nextTask,
+  };
 }

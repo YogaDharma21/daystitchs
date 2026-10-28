@@ -42,3 +42,8 @@ export interface MiniCell {
   day: number | null;
   isToday: boolean;
 }
+
+export interface NowAndNextResult<TId = string> {
+  now: DayEntry<TId> | null;
+  next: DayEntry<TId> | null;
+}
