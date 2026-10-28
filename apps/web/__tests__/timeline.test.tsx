@@ -84,7 +84,8 @@ describe("Timeline web component", () => {
     render(<Timeline />)
 
     expect(screen.getByTestId("timeline")).toBeInTheDocument()
-    expect(screen.getByText("Submit PR")).toBeInTheDocument()
+    expect(screen.getByTestId("now-next-widget")).toBeInTheDocument()
+    expect(screen.getAllByText("Submit PR").length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText("Design Review")).toBeInTheDocument()
     expect(screen.getByText("Write documentation")).toBeInTheDocument()
   })
@@ -103,11 +104,10 @@ describe("Timeline web component", () => {
   it("opens entry sheet when clicking an entry card", async () => {
     render(<Timeline />)
 
-    const taskTitle = screen.getByText("Submit PR")
-    const taskCard = taskTitle.closest('[data-testid="task-card"]')
-    expect(taskCard).not.toBeNull()
+    const taskCards = screen.getAllByTestId("task-card")
+    expect(taskCards.length).toBeGreaterThan(0)
 
-    fireEvent.click(taskCard!)
+    fireEvent.click(taskCards[0]!)
 
     await waitFor(() => {
       expect(screen.getByTestId("entry-sheet")).toBeInTheDocument()
