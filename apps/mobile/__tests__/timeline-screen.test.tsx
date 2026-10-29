@@ -149,6 +149,12 @@ describe("TimelineScreen", () => {
     expect(todayBtn).toBeTruthy();
   });
 
+  it("renders now and next widget in the sticky top area", async () => {
+    await render(<TimelineScreen />);
+
+    expect(screen.getByTestId("now-next-widget")).toBeTruthy();
+  });
+
   it("invokes toggleDone mutation with task id when tapping task checkbox", async () => {
     await render(<TimelineScreen />);
 

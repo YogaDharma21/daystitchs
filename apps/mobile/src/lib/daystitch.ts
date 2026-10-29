@@ -27,6 +27,8 @@ export {
   type EntryDraft,
   validateEntryDraft,
   entryDateSummary,
+  getNowAndNext,
+  type NowAndNextResult,
 } from "@workspace/core";
 
 export type TimelineFilter = "all" | "tasks" | "events" | "pending";

@@ -24,6 +24,7 @@ import { MonthBanner } from "./month-banner";
 import { FilterBar } from "./filter-bar";
 import { WeekHeader } from "./week-header";
 import { DaySection } from "./day-section";
+import { NowNextBar } from "./now-next-bar";
 import { EntrySheet } from "../entry-sheet";
 
 // ponytail: single-month window with scroll; upgrade to multi-month windowed FlatList when infinite scroll is needed.
@@ -108,14 +109,17 @@ export function TimelineScreen() {
     [entries, optimisticOverrides, toggleDone]
   );
 
-  const filteredEntries = useMemo(() => {
-    const effective = (entries ?? []).map((raw) =>
+  const effectiveEntries = useMemo(() => {
+    return (entries ?? []).map((raw) =>
       raw._id in optimisticOverrides
         ? { ...raw, done: optimisticOverrides[raw._id] }
         : raw
     );
-    return filterEntries(effective, filter);
-  }, [entries, optimisticOverrides, filter]);
+  }, [entries, optimisticOverrides]);
+
+  const filteredEntries = useMemo(() => {
+    return filterEntries(effectiveEntries, filter);
+  }, [effectiveEntries, filter]);
 
   const byDate = useMemo(() => {
     const map = new Map<string, DayEntry[]>();
@@ -169,6 +173,12 @@ export function TimelineScreen() {
           <Text className="text-xs font-bold text-white">Today</Text>
         </Pressable>
       </View>
+
+      <NowNextBar
+        entries={effectiveEntries}
+        onSelectEntry={handleOpenEdit}
+        onToggleDone={handleToggleDone}
+      />
 
       <ScrollView
         ref={scrollViewRef}
