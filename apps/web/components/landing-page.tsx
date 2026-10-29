@@ -3,15 +3,11 @@
 import * as React from "react"
 import {
   ArrowRight,
-  Calendar,
   CalendarDays,
-  Check,
   ChevronDown,
-  Clock,
   Info,
-  Lock,
-  MapPin,
   Plus,
+  Search,
   User,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
@@ -82,7 +78,7 @@ export default function LandingPage({
     <Button
       size="lg"
       onClick={handleFallbackClick}
-      className="group flex h-10 items-center gap-2 rounded-full px-5 text-sm font-medium shadow-md shadow-primary/20 transition-all hover:shadow-primary/30"
+      className="group flex h-10 items-center gap-2 rounded-full px-5 text-sm font-medium transition-all duration-300 active:scale-95"
     >
       <span>Sign in</span>
       <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
@@ -93,7 +89,7 @@ export default function LandingPage({
     <Button
       size="lg"
       onClick={handleFallbackClick}
-      className="group flex h-12 items-center gap-2.5 rounded-full px-8 text-base font-semibold shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] hover:shadow-primary/35 active:scale-[0.98]"
+      className="group flex h-12 items-center gap-2.5 rounded-full px-8 text-base font-semibold transition-all duration-300 active:scale-95"
     >
       <span>Start Stitching Your Days</span>
       <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
@@ -222,170 +218,135 @@ export default function LandingPage({
       {/* Timeline Preview Showcase */}
       <section className="px-6 pb-20 sm:pb-28">
         <div className="mx-auto max-w-4xl">
-          {/* App Window Frame Mockup */}
-          <div className="relative overflow-hidden rounded-2xl border border-border/80 bg-card/60 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
-            {/* Native Window Titlebar */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-border/60 bg-muted/40 px-4 py-2.5">
-              {/* Traffic light window controls */}
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-full border border-[#e0443e]/50 bg-[#ff5f56]/80" />
-                <span className="size-3 rounded-full border border-[#dea123]/50 bg-[#ffbd2e]/80" />
-                <span className="size-3 rounded-full border border-[#1aab29]/50 bg-[#27c93f]/80" />
-              </div>
-
-              {/* Centered clean browser address pill */}
-              <div className="flex h-7 items-center gap-1.5 rounded-md border border-border/60 bg-background/50 px-3 font-mono text-xs text-muted-foreground">
-                <Lock className="size-3 text-muted-foreground/60" />
-                <span>daystitch.app</span>
-              </div>
-
-              {/* Right empty spacer for balance */}
-              <div className="flex justify-end" />
-            </div>
-
-            {/* In-app sticky header mockup matching real DayStitch shell */}
-            <div className="flex items-center justify-between border-b border-border/50 bg-background/80 px-6 py-3">
-              <div className="flex items-center gap-1 text-sm font-bold tracking-tight">
+          <div className="relative overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_28px_56px_-40px_rgba(0,0,0,0.9)]">
+            {/* Timeline Sticky Header */}
+            <div className="flex items-center justify-between border-b border-border bg-background/95 px-6 py-3">
+              <div className="flex items-center gap-1.5 text-base font-semibold tracking-tight sm:text-lg">
                 <span>October 2026</span>
                 <ChevronDown className="size-4 text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex h-8 items-center gap-1.5 rounded-full border border-border/60 bg-secondary/80 px-3 text-xs font-semibold text-foreground shadow-xs">
-                  <CalendarDays className="size-3.5 text-primary" />
-                  <span>Today</span>
+                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                  <Search className="size-4" />
                 </div>
-                <div className="flex size-8 items-center justify-center rounded-full border border-border/60 bg-secondary/80 text-muted-foreground">
+                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                  <CalendarDays className="size-4" />
+                </div>
+                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
                   <User className="size-4" />
                 </div>
               </div>
             </div>
 
             {/* Inner Timeline Content */}
-            <div className="space-y-6 p-4 sm:p-8">
+            <div>
               {/* Month Banner */}
-              <div className="border-b border-border/40 pb-4">
-                <p className="text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              <div
+                className="relative flex min-h-[150px] flex-col justify-center overflow-hidden px-6 pt-12 pb-11 sm:px-[58px]"
+                style={{
+                  background:
+                    "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
+                  color: "var(--secondary-foreground)",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[128px] leading-none font-extrabold tabular-nums select-none"
+                  style={{
+                    color:
+                      "color-mix(in oklch, var(--foreground) 8%, transparent)",
+                  }}
+                >
+                  10
+                </span>
+                <p className="relative m-0 mb-1.5 text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
                   2026 · 4 entries
                 </p>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-3xl font-extrabold tracking-tight">
-                    October
-                  </h3>
-                  <div className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-secondary/50 px-2.5 py-1 text-xs text-muted-foreground">
-                    <Calendar className="size-3.5" />
-                    <span>Jump to Month</span>
-                  </div>
-                </div>
+                <h2 className="relative m-0 text-[34px] font-extrabold tracking-[-0.03em]">
+                  October
+                </h2>
               </div>
 
-              {/* Day Row with Continuous Stitch Line */}
-              <div className="relative grid grid-cols-[48px_1fr] gap-4">
-                {/* Continuous vertical stitch line */}
-                <div
+              {/* Week Row */}
+              <div className="flex w-full items-center gap-3 px-6 pt-8 pb-1 text-left text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                <span className="flex-none">Oct 18 – 24</span>
+                <span className="flex-none rounded-full border border-border bg-secondary px-2.5 py-0.5 tracking-normal normal-case text-foreground">
+                  4 entries
+                </span>
+                <span aria-hidden="true" className="h-px flex-1 bg-border" />
+                <ChevronDown className="size-3.5 flex-none text-muted-foreground" />
+              </div>
+
+              {/* Day Section */}
+              <div className="relative grid grid-cols-[44px_1fr] gap-2 px-6 pt-5 pb-8">
+                {/* Connector line down the day column */}
+                <span
                   aria-hidden="true"
-                  className="absolute top-4 bottom-0 left-[23px] w-[2px] bg-gradient-to-b from-primary via-border to-border/20"
+                  className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-foreground/14"
                 />
 
                 {/* Day Marker */}
-                <div className="relative flex flex-col items-center">
-                  <div className="z-10 flex size-9 flex-col items-center justify-center rounded-xl border border-primary/50 bg-background text-xs font-semibold text-primary shadow-sm">
-                    <span className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
-                      Wed
-                    </span>
-                    <span className="text-sm leading-none font-bold">22</span>
+                <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
+                  <span className="bg-card text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                    Wed
+                  </span>
+                  <span className="flex size-9 items-center justify-center rounded-full text-lg font-bold tabular-nums bg-primary text-primary-foreground">
+                    22
+                  </span>
+                  <div className="mt-2 flex size-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
+                    <Plus className="size-3" />
                   </div>
-                  <div className="mt-2 size-2 rounded-full bg-primary" />
                 </div>
 
                 {/* Day Entries List */}
-                <div className="min-w-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
-                      Wednesday · Today
-                    </span>
-                    <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Plus className="size-3 text-primary" />
-                      <span>New Entry</span>
-                    </div>
-                  </div>
-
-                  {/* Task / Event cards */}
-                  <div className="space-y-2.5">
-                    {tasks.map((item) => (
+                <div className="min-w-0 space-y-2.5">
+                  {tasks.map((item) =>
+                    item.type === "event" ? (
                       <div
                         key={item.id}
-                        onClick={() =>
-                          item.type === "task" && toggleTask(item.id)
-                        }
-                        className={cn(
-                          "group relative flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-all select-none sm:p-3.5",
-                          item.type === "event"
-                            ? "border-primary/20 bg-primary/[0.04] hover:bg-primary/[0.08]"
-                            : item.done
-                              ? "border-border/30 bg-secondary/30 opacity-60"
-                              : "border-border/60 bg-secondary/60 hover:border-border hover:bg-secondary"
-                        )}
+                        className="cursor-pointer rounded-xl bg-secondary/50 px-3.5 py-3 transition-colors hover:bg-secondary/70"
                       >
-                        {/* Checkbox or Event Icon */}
-                        {item.type === "task" ? (
-                          <button
-                            type="button"
-                            aria-label="Toggle task"
+                        <div className="text-sm font-semibold">
+                          {item.title}
+                        </div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {item.time} · {item.loc}
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        key={item.id}
+                        onClick={() => toggleTask(item.id)}
+                        className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-secondary/50 px-3.5 py-3 transition-colors hover:bg-secondary/70"
+                      >
+                        <button
+                          type="button"
+                          aria-label={`Toggle ${item.title}`}
+                          className={cn(
+                            "mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs transition-all",
+                            item.done
+                              ? "border-transparent bg-primary text-primary-foreground"
+                              : "border-border text-transparent hover:border-primary/60"
+                          )}
+                        >
+                          {item.done ? "✓" : ""}
+                        </button>
+                        <div className="min-w-0">
+                          <div
                             className={cn(
-                              "mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs transition-all",
-                              item.done
-                                ? "border-transparent bg-primary text-primary-foreground"
-                                : "border-border text-transparent hover:border-primary/60"
+                              "text-sm font-semibold",
+                              item.done && "line-through opacity-60"
                             )}
                           >
-                            <Check className="size-3" />
-                          </button>
-                        ) : (
-                          <div className="mt-0.5 flex size-5 flex-none items-center justify-center rounded-full bg-primary/20 text-primary">
-                            <Clock className="size-3" />
+                            {item.title}
                           </div>
-                        )}
-
-                        {/* Title and Meta */}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <p
-                              className={cn(
-                                "text-sm leading-snug font-medium",
-                                item.done &&
-                                  "text-muted-foreground line-through"
-                              )}
-                            >
-                              {item.title}
-                            </p>
-                            <span
-                              className={cn(
-                                "rounded px-1.5 py-0.5 text-[10px] font-medium tracking-wide uppercase",
-                                item.type === "event"
-                                  ? "border border-primary/20 bg-primary/15 text-primary"
-                                  : "bg-muted text-muted-foreground"
-                              )}
-                            >
-                              {item.type}
-                            </span>
-                          </div>
-
-                          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1 font-mono text-[11px]">
-                              <Clock className="size-3 text-muted-foreground/70" />
-                              {item.time}
-                            </span>
-                            {item.loc && (
-                              <span className="flex items-center gap-1 text-[11px]">
-                                <MapPin className="size-3 text-muted-foreground/70" />
-                                {item.loc}
-                              </span>
-                            )}
+                          <div className="mt-0.5 text-xs text-muted-foreground">
+                            {item.time} · {item.loc}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
