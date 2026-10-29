@@ -43,6 +43,7 @@ import type { Id } from "@/convex/_generated/dataModel"
 import EntrySheet from "@/components/entry-sheet"
 import SearchDialog from "@/components/search-dialog"
 import { EntryTypeChoice } from "@/components/entry-type-choice"
+import NowNextBar from "@/components/now-next-bar"
 import { Snackbar } from "@workspace/ui/components/snackbar"
 import { useDelayedDeletion } from "@/lib/use-delayed-deletion"
 
@@ -906,6 +907,13 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           </div>
         </div>
       </div>
+      {view !== null ? (
+        <NowNextBar
+          entries={activeEntries}
+          onSelectEntry={openEdit}
+          onToggleDone={onToggleDone}
+        />
+      ) : null}
     </div>
   )
 

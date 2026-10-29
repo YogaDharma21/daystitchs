@@ -33,4 +33,6 @@ export {
   sundaysOfMonth,
   validateEntryDraft,
   entryDateSummary,
+  getNowAndNext,
+  type NowAndNextResult,
 } from "@workspace/core";
