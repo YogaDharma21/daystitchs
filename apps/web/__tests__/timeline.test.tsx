@@ -7,13 +7,17 @@ import { isoDay, type DayEntry } from "@/lib/daystitch"
 
 const mockToggleDone = vi.fn()
 const mockUseMutation = vi.fn()
+const mockConvexQuery = vi.fn()
 
 vi.mock("convex/react", () => ({
   useQuery: vi.fn(),
   useMutation: (mutation: unknown) => mockUseMutation(mutation),
+  useConvex: () => ({ query: mockConvexQuery }),
 }))
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
+window.URL.createObjectURL = vi.fn(() => "blob:test")
+window.URL.revokeObjectURL = vi.fn()
 
 describe("Timeline web component", () => {
   const originalEnv = process.env.NEXT_PUBLIC_CONVEX_URL
@@ -68,6 +72,7 @@ describe("Timeline web component", () => {
     mockUseMutation.mockImplementation(() => mockToggleDone)
     vi.mocked(useQuery).mockReturnValue(mockEntries)
     mockToggleDone.mockResolvedValue(undefined)
+    mockConvexQuery.mockResolvedValue(mockEntries)
   })
 
   afterAll(() => {
@@ -121,5 +126,18 @@ describe("Timeline web component", () => {
 
     expect(screen.getByTestId("timeline-empty")).toBeInTheDocument()
     expect(screen.getByText("No entries yet")).toBeInTheDocument()
+  })
+
+  it("triggers export query when clicking export button", async () => {
+    render(<Timeline />)
+
+    const exportBtn = screen.getByTestId("export-btn")
+    expect(exportBtn).toBeInTheDocument()
+
+    fireEvent.click(exportBtn)
+
+    await waitFor(() => {
+      expect(mockConvexQuery).toHaveBeenCalledTimes(1)
+    })
   })
 })

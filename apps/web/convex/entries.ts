@@ -86,6 +86,19 @@ export const search = query({
   },
 })
 
+export const exportAll = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await callerUserId(ctx.auth)
+    if (!userId) return []
+    return await ctx.db
+      .query("entries")
+      .withIndex("by_userId_and_date", (q) => q.eq("userId", userId))
+      .order("asc")
+      .take(10000)
+  },
+})
+
 export const toggleDone = mutation({
   args: { id: v.id("entries") },
   handler: async (ctx, args) => {

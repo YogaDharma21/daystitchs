@@ -1,12 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { useMutation, useQuery } from "convex/react"
+import { useConvex, useMutation, useQuery } from "convex/react"
 import {
   CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Download,
   Search,
 } from "lucide-react"
 
@@ -38,7 +39,12 @@ import {
   type DayEntry,
   type EntryType,
 } from "@/lib/daystitch"
-import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api"
+import {
+  exportAllEntriesQuery,
+  listRangeQuery,
+  toggleDoneMutation,
+} from "@/lib/entries-api"
+import { downloadJsonFile, formatExportData } from "@/lib/export"
 import type { Id } from "@/convex/_generated/dataModel"
 import EntrySheet from "@/components/entry-sheet"
 import SearchDialog from "@/components/search-dialog"
@@ -512,6 +518,8 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     end: monthEndDay(win.end),
   })
   const toggleDone = useMutation(toggleDoneMutation)
+  const convex = useConvex()
+  const [isExporting, setIsExporting] = React.useState(false)
   const { pendingEntry, stageDelete, undoDelete, isPending } =
     useDelayedDeletion()
 
@@ -735,6 +743,21 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     [jumpToDate, openEdit]
   )
 
+  const onExport = React.useCallback(async () => {
+    if (isExporting) return
+    setIsExporting(true)
+    try {
+      const raw = await convex.query(exportAllEntriesQuery, {})
+      const payload = formatExportData(raw)
+      downloadJsonFile(
+        JSON.stringify(payload, null, 2),
+        `daystitch-export-${todayKey}.json`
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }, [convex, isExporting, todayKey])
+
   const pickerYear = Math.floor(pickerIdx / 12)
   const pickerMonth = pickerIdx % 12
   const pickerCells = miniGridCells(pickerYear, pickerMonth, todayKey)
@@ -896,6 +919,22 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
               </button>
             </TooltipTrigger>
             <TooltipContent side="bottom">Jump to today</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                data-testid="export-btn"
+                aria-label="Export entries to JSON"
+                disabled={isExporting}
+                onClick={() => void onExport()}
+                className="flex size-8 items-center justify-center rounded-full bg-secondary transition-opacity disabled:opacity-40"
+              >
+                <Download aria-hidden="true" className="size-4" />
+                <span className="sr-only">Export</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Export data (JSON)</TooltipContent>
           </Tooltip>
           {/* Account menu sits in this sticky row instead of a shell row above
               the list: the app boots scrolled to today, and the list keeps

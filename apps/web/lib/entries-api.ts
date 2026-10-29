@@ -28,6 +28,7 @@ export type UpdateEntryArgs = CreateEntryArgs & {
 
 export const listRangeQuery = api.entries.listRange
 export const searchEntriesQuery = api.entries.search
+export const exportAllEntriesQuery = api.entries.exportAll
 export const toggleDoneMutation = api.entries.toggleDone
 export const createEntryMutation = api.entries.create
 export const updateEntryMutation = api.entries.update
