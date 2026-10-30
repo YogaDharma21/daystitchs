@@ -3,9 +3,12 @@ import React, { useMemo } from "react";
 import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/expo";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
-import { Slot } from "expo-router";
+import { Slot, usePathname } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { tokenCache } from "../utils/cache";
 import { AuthGate } from "../components/auth-gate";
+
+WebBrowser.maybeCompleteAuthSession();
 
 const publishableKey =
   process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "pk_test_placeholder";
@@ -13,6 +16,7 @@ const convexUrl =
   process.env.EXPO_PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud";
 
 export default function RootLayout() {
+  const pathname = usePathname();
   const convex = useMemo(
     () =>
       new ConvexReactClient(convexUrl, {
@@ -25,9 +29,13 @@ export default function RootLayout() {
     <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
       <ClerkLoaded>
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-          <AuthGate>
+          {pathname === "/sso-callback" ? (
             <Slot />
-          </AuthGate>
+          ) : (
+            <AuthGate>
+              <Slot />
+            </AuthGate>
+          )}
         </ConvexProviderWithClerk>
       </ClerkLoaded>
     </ClerkProvider>
