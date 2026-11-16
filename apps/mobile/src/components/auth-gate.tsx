@@ -1,7 +1,10 @@
-import React from "react";
-import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
+import React, { useCallback, useState } from "react";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useConvexAuth } from "convex/react";
-import { useUser, useClerk, useSignIn } from "@clerk/expo";
+import { useUser, useClerk, useSSO } from "@clerk/expo";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface AuthGateProps {
   children?: React.ReactNode;
@@ -12,21 +15,29 @@ export function AuthGate({ children, onSignIn }: AuthGateProps) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
-  const signInResult = useSignIn() as unknown as { isLoaded?: boolean; signIn?: { create: (opts: unknown) => Promise<unknown> } };
-  const { signIn, isLoaded } = signInResult;
+  const { startSSOFlow } = useSSO();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignIn = () => {
+  const handleSignIn = useCallback(async () => {
     if (onSignIn) {
       onSignIn();
       return;
     }
-    // ponytail: basic Clerk sign-in trigger; upgrade to full OAuth sheet in Phase 2.
-    if (isLoaded && signIn) {
-      void signIn.create({ identifier: "" }).catch(() => {});
-      return;
+    // ponytail: direct google oauth via Clerk SSO; upgrade to multi-provider sheet if requested.
+    try {
+      setIsSubmitting(true);
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+      }
+    } catch {
+      // User dismissed or network failed; state remains clean without alert popups.
+    } finally {
+      setIsSubmitting(false);
     }
-    Alert.alert("Sign In", "Sign in with Clerk");
-  };
+  }, [onSignIn, startSSOFlow]);
 
   if (isLoading) {
     return (
@@ -48,11 +59,16 @@ export function AuthGate({ children, onSignIn }: AuthGateProps) {
           <Pressable
             testID="sign-in-button"
             onPress={handleSignIn}
-            className="mt-6 w-full rounded-xl bg-foreground py-3.5 items-center active:opacity-90 shadow-xs"
+            disabled={isSubmitting}
+            className="mt-6 w-full rounded-xl bg-foreground py-3.5 items-center active:opacity-90 disabled:opacity-50 shadow-xs"
             accessibilityRole="button"
-            accessibilityLabel="Sign In"
+            accessibilityLabel="Sign In with Google"
           >
-            <Text className="font-semibold text-background">Sign In</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#08090b" />
+            ) : (
+              <Text className="font-semibold text-background">Sign In with Google</Text>
+            )}
           </Pressable>
         </View>
       </View>

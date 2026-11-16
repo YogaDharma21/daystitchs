@@ -162,7 +162,8 @@ export const update = mutation({
     const userId = await requireUserId(ctx.auth)
     const doc = await requireOwnedDoc(ctx, userId, args.id)
     assertEntryDraft(args)
-    const patch: {
+    const nextDoc: {
+      userId: string
       date: string
       title: string
       type: "event" | "task"
@@ -173,21 +174,21 @@ export const update = mutation({
       detail?: string
       done?: boolean
     } = {
+      userId: doc.userId,
       date: args.date,
       title: args.title.trim(),
       type: args.type,
     }
     if (args.type === "event") {
-      if (args.start) patch.start = args.start
-      if (args.end) patch.end = args.end
-      if (args.loc?.trim()) patch.loc = args.loc.trim()
-      // done is Task-only: never accept it on events.
+      if (args.start?.trim()) nextDoc.start = args.start.trim()
+      if (args.end?.trim()) nextDoc.end = args.end.trim()
+      if (args.loc?.trim()) nextDoc.loc = args.loc.trim()
     } else {
-      if (args.time) patch.time = args.time
-      patch.done = args.done ?? doc.done ?? false
+      if (args.time?.trim()) nextDoc.time = args.time.trim()
+      nextDoc.done = args.done ?? (doc.type === "task" ? doc.done : false) ?? false
     }
-    if (args.detail?.trim()) patch.detail = args.detail.trim()
-    await ctx.db.patch(args.id, patch)
+    if (args.detail?.trim()) nextDoc.detail = args.detail.trim()
+    await ctx.db.replace(args.id, nextDoc)
   },
 })
 

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useMutation, useQuery } from "convex/react"
 import {
+  ArrowRight,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -31,6 +32,7 @@ import {
   monthEndDay,
   monthIndex,
   monthStartDay,
+  parseDay,
   sortEntries,
   sundaysOfMonth,
   titleForYm,
@@ -38,11 +40,18 @@ import {
   type DayEntry,
   type EntryType,
 } from "@/lib/daystitch"
-import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api"
+import {
+  listRangeQuery,
+  toggleDoneMutation,
+  updateEntryMutation,
+} from "@/lib/entries-api"
 import type { Id } from "@/convex/_generated/dataModel"
 import EntrySheet from "@/components/entry-sheet"
 import SearchDialog from "@/components/search-dialog"
 import { EntryTypeChoice } from "@/components/entry-type-choice"
+import NowNextBar from "@/components/now-next-bar"
+import { Snackbar } from "@workspace/ui/components/snackbar"
+import { useDelayedDeletion } from "@/lib/use-delayed-deletion"
 
 function MonthBanner({
   year,
@@ -172,16 +181,22 @@ function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
 
 function TaskCard({
   entry,
+  todayKey,
   onToggle,
   onOpen,
+  onRollover,
 }: {
   entry: DayEntry
+  todayKey: string
   onToggle: () => void
   onOpen: () => void
+  onRollover?: () => void
 }) {
   const sub = fmtRange(entry)
   const meta = entryCardMeta([sub, entry.detail])
   const done = Boolean(entry.done)
+  const isRolloverCandidate = !done && entry.date <= todayKey && onRollover
+
   return (
     <div
       data-testid="task-card"
@@ -192,46 +207,67 @@ function TaskCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className={`group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface ${
+      className={`group relative flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface ${
         done ? "opacity-60" : ""
       }`}
     >
-      <button
-        data-testid="task-toggle"
-        data-check={entry._id}
-        type="button"
-        aria-label={`Toggle done for ${entry.title}`}
-        aria-pressed={done}
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle()
-        }}
-        className={`mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors ${
-          done
-            ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
-            : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
-        }`}
-      >
-        {done ? "✓" : ""}
-      </button>
-      <div className="min-w-0 flex-1">
-        <div
-          data-testid="task-title"
-          className={`text-[13px] font-medium leading-snug ${
-            done ? "line-through text-muted-foreground" : "text-foreground"
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        <button
+          data-testid="task-toggle"
+          data-check={entry._id}
+          type="button"
+          aria-label={`Toggle done for ${entry.title}`}
+          aria-pressed={done}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle()
+          }}
+          className={`mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors ${
+            done
+              ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
+              : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
           }`}
         >
-          {entry.title}
-        </div>
-        {meta ? (
+          {done ? "✓" : ""}
+        </button>
+        <div className="min-w-0 flex-1">
           <div
-            data-testid="task-sub"
-            className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+            data-testid="task-title"
+            className={`text-[13px] font-medium leading-snug ${
+              done ? "line-through text-muted-foreground" : "text-foreground"
+            }`}
           >
-            {meta}
+            {entry.title}
           </div>
-        ) : null}
+          {meta ? (
+            <div
+              data-testid="task-sub"
+              className="mt-1 text-[11px] text-muted-foreground tabular-nums"
+            >
+              {meta}
+            </div>
+          ) : null}
+        </div>
       </div>
+      {isRolloverCandidate ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid="task-rollover"
+              aria-label="Roll over to next day"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRollover()
+              }}
+              className="mt-0.5 flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-70 transition-opacity hover:opacity-100 hover:text-foreground"
+            >
+              <ArrowRight className="size-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Roll over to tomorrow</TooltipContent>
+        </Tooltip>
+      ) : null}
     </div>
   )
 }
@@ -243,6 +279,7 @@ function DaySection({
   onToggleDone,
   onAdd,
   onOpen,
+  onRollover,
 }: {
   day: Date
   todayKey: string
@@ -250,6 +287,7 @@ function DaySection({
   onToggleDone: (id: Id<"entries">) => void
   onAdd: (date: string, type: EntryType) => void
   onOpen: (entry: DayEntry) => void
+  onRollover?: (entry: DayEntry) => void
 }) {
   const key = isoDay(day)
   const dow = day.toLocaleDateString("en-US", { weekday: "short" })
@@ -334,8 +372,10 @@ function DaySection({
               <TaskCard
                 key={e._id}
                 entry={e}
+                todayKey={todayKey}
                 onToggle={() => onToggleDone(e._id)}
                 onOpen={() => onOpen(e)}
+                onRollover={onRollover ? () => onRollover(e) : undefined}
               />
             ) : (
               <EventCard key={e._id} entry={e} onOpen={() => onOpen(e)} />
@@ -501,6 +541,9 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     end: monthEndDay(win.end),
   })
   const toggleDone = useMutation(toggleDoneMutation)
+  const updateEntry = useMutation(updateEntryMutation)
+  const { pendingEntry, stageDelete, undoDelete, isPending } =
+    useDelayedDeletion()
 
   loadedRef.current = view !== null
 
@@ -681,21 +724,44 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [minMonth, maxMonth, win.start, win.end])
 
+  const activeEntries = React.useMemo(() => {
+    if (!view) return []
+    return view.entries.filter((e) => !isPending(e._id))
+  }, [view, isPending])
+
   const byDate = React.useMemo(() => {
     const m = new Map<string, DayEntry[]>()
-    for (const e of view?.entries ?? []) {
+    for (const e of activeEntries) {
       const list = m.get(e.date)
       if (list) list.push(e)
       else m.set(e.date, [e])
     }
     return m
-  }, [view])
+  }, [activeEntries])
 
   const onToggleDone = React.useCallback(
     (id: Id<"entries">) => {
       void toggleDone({ id })
     },
     [toggleDone]
+  )
+
+  const onRollover = React.useCallback(
+    (entry: DayEntry) => {
+      const d = parseDay(entry.date)
+      d.setDate(d.getDate() + 1)
+      const nextDate = isoDay(d)
+      void updateEntry({
+        id: entry._id,
+        date: nextDate,
+        title: entry.title,
+        type: "task",
+        time: entry.time,
+        detail: entry.detail,
+        done: false,
+      })
+    },
+    [updateEntry]
   )
 
   const openNew = React.useCallback(
@@ -888,6 +954,13 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           </div>
         </div>
       </div>
+      {view !== null ? (
+        <NowNextBar
+          entries={activeEntries}
+          onSelectEntry={openEdit}
+          onToggleDone={onToggleDone}
+        />
+      ) : null}
     </div>
   )
 
@@ -926,7 +999,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         data-testid="timeline"
         className="flex flex-col pb-16 [overflow-anchor:none]"
       >
-        {view.entries.length === 0 ? (
+        {activeEntries.length === 0 ? (
           <div
             data-testid="timeline-empty"
             className="px-6 pt-8 pb-2 text-center"
@@ -952,7 +1025,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
         ) : null}
         {months.map(({ idx, year, month }) => {
           const prefix = `${year}-${String(month + 1).padStart(2, "0")}`
-          const count = view.entries.filter((e) =>
+          const count = activeEntries.filter((e) =>
             e.date.startsWith(prefix)
           ).length
           return (
@@ -992,6 +1065,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                           onToggleDone={onToggleDone}
                           onAdd={openNew}
                           onOpen={openEdit}
+                          onRollover={onRollover}
                         />
                       ))}
                     </React.Fragment>
@@ -1033,6 +1107,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                         onToggleDone={onToggleDone}
                         onAdd={openNew}
                         onOpen={openEdit}
+                        onRollover={onRollover}
                       />
                     ))}
                   </React.Fragment>
@@ -1106,6 +1181,18 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
           date={sheet.date || todayKey}
           entry={sheet.entry}
           preset={sheet.preset}
+          onDeleteEntry={stageDelete}
+        />
+        <Snackbar
+          open={pendingEntry !== null}
+          message={
+            pendingEntry
+              ? `${pendingEntry.type === "event" ? "Event" : "Task"} deleted`
+              : ""
+          }
+          actionLabel="Undo"
+          onAction={undoDelete}
+          data-testid="undo-snackbar"
         />
       </div>
     </>

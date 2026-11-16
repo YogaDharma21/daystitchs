@@ -7,30 +7,37 @@ import {
   ActivityIndicator,
   type LayoutChangeEvent,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation } from "convex/react";
 import {
   daysOfWeek,
+  filterEntries,
   isoDay,
   monthEndDay,
   monthIndex,
   monthStartDay,
   sundaysOfMonth,
   type DayEntry,
+  type TimelineFilter,
 } from "../../lib/daystitch";
 import { listRangeQuery, toggleDoneMutation } from "../../lib/entries-api";
 import { MonthBanner } from "./month-banner";
+import { FilterBar } from "./filter-bar";
 import { WeekHeader } from "./week-header";
 import { DaySection } from "./day-section";
+import { NowNextBar } from "./now-next-bar";
 import { EntrySheet } from "../entry-sheet";
 
 // ponytail: single-month window with scroll; upgrade to multi-month windowed FlatList when infinite scroll is needed.
 export function TimelineScreen() {
+  const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => isoDay(today), [today]);
   const todayIdx = useMemo(() => monthIndex(today), [today]);
 
   const [currentMonthIdx, setCurrentMonthIdx] = useState(todayIdx);
+  const [filter, setFilter] = useState<TimelineFilter>("all");
   const [todayY, setTodayY] = useState(0);
   // ponytail: local optimistic state; upgrade to Convex optimistic mutation if multi-screen sync needed.
   const [optimisticOverrides, setOptimisticOverrides] = useState<
@@ -104,13 +111,21 @@ export function TimelineScreen() {
     [entries, optimisticOverrides, toggleDone]
   );
 
+  const effectiveEntries = useMemo(() => {
+    return (entries ?? []).map((raw) =>
+      raw._id in optimisticOverrides
+        ? { ...raw, done: optimisticOverrides[raw._id] }
+        : raw
+    );
+  }, [entries, optimisticOverrides]);
+
+  const filteredEntries = useMemo(() => {
+    return filterEntries(effectiveEntries, filter);
+  }, [effectiveEntries, filter]);
+
   const byDate = useMemo(() => {
     const map = new Map<string, DayEntry[]>();
-    for (const rawEntry of entries ?? []) {
-      const entry =
-        rawEntry._id in optimisticOverrides
-          ? { ...rawEntry, done: optimisticOverrides[rawEntry._id] }
-          : rawEntry;
+    for (const entry of filteredEntries) {
       const list = map.get(entry.date);
       if (list) {
         list.push(entry);
@@ -119,7 +134,7 @@ export function TimelineScreen() {
       }
     }
     return map;
-  }, [entries, optimisticOverrides]);
+  }, [filteredEntries]);
 
   const jumpToToday = useCallback(() => {
     if (currentMonthIdx !== todayIdx) {
@@ -161,12 +176,20 @@ export function TimelineScreen() {
         </Pressable>
       </View>
 
+      <NowNextBar
+        entries={effectiveEntries}
+        onSelectEntry={handleOpenEdit}
+        onToggleDone={handleToggleDone}
+      />
+
       <ScrollView
         ref={scrollViewRef}
         className="flex-1"
+        stickyHeaderIndices={[1]}
         contentContainerStyle={{ paddingBottom: 60 }}
       >
         <MonthBanner year={year} month={month} count={entries.length} />
+        <FilterBar selected={filter} onChange={setFilter} />
 
         {entries.length === 0 ? (
           <View testID="timeline-empty" className="p-8 items-center justify-center">
@@ -177,6 +200,15 @@ export function TimelineScreen() {
               Your timeline for this month is empty.
             </Text>
           </View>
+        ) : filteredEntries.length === 0 ? (
+          <View testID="timeline-no-matches" className="p-8 items-center justify-center">
+            <Text className="text-base font-medium text-neutral-300">
+              No matching entries
+            </Text>
+            <Text className="mt-1 text-center text-xs text-neutral-500">
+              No entries match the current filter.
+            </Text>
+          </View>
         ) : null}
 
         {sundays.map((sun) => {
@@ -184,7 +216,7 @@ export function TimelineScreen() {
           const days = daysOfWeek(sun);
           const hits = days.filter((d) => {
             const k = isoDay(d);
-            return k === todayKey || byDate.has(k);
+            return (k === todayKey && filter === "all") || byDate.has(k);
           });
 
           if (hits.length === 0) {
@@ -225,7 +257,8 @@ export function TimelineScreen() {
         onPress={() => handleOpenCreate(todayKey)}
         accessibilityRole="button"
         accessibilityLabel="Create entry for today"
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-foreground shadow-2xl active:opacity-90"
+        style={{ bottom: Math.max(24, insets.bottom + 16) }}
+        className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-foreground shadow-2xl active:opacity-90"
       >
         <Text className="text-2xl font-bold text-background">+</Text>
       </Pressable>

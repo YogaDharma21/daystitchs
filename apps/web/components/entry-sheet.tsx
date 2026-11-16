@@ -34,6 +34,7 @@ interface EntrySheetProps {
   date: string;
   entry: DayEntry | null;
   preset: EntryType;
+  onDeleteEntry?: (entry: DayEntry) => void;
 }
 
 export default function EntrySheet({
@@ -42,6 +43,7 @@ export default function EntrySheet({
   date,
   entry,
   preset,
+  onDeleteEntry,
 }: EntrySheetProps) {
   const create = useMutation(createEntryMutation);
   const update = useMutation(updateEntryMutation);
@@ -102,6 +104,11 @@ export default function EntrySheet({
 
   const onDelete = () => {
     if (!entry || saving) return;
+    if (onDeleteEntry) {
+      onDeleteEntry(entry);
+      onOpenChange(false);
+      return;
+    }
     setSaving(true);
     void remove({ id: entry._id }).then(
       () => onOpenChange(false),

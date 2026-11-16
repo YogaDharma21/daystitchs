@@ -24,6 +24,23 @@ import { Input } from "@workspace/ui/components/input"
 import { parseDay, fmtTime, type DayEntry } from "@/lib/daystitch"
 import { searchEntriesQuery } from "@/lib/entries-api"
 
+function highlightMatches(text: string, term: string) {
+  if (!term.trim()) return text
+  const parts = text.split(new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"))
+  return parts.map((part, i) =>
+    part.toLowerCase() === term.toLowerCase() ? (
+      <mark
+        key={i}
+        className="rounded-xs bg-amber-500/20 px-0.5 font-medium text-foreground"
+      >
+        {part}
+      </mark>
+    ) : (
+      part
+    )
+  )
+}
+
 interface SearchDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -253,7 +270,7 @@ export default function SearchDialog({
                               : "text-foreground"
                           }`}
                         >
-                          {entry.title}
+                          {highlightMatches(entry.title, debouncedTerm)}
                         </span>
                         <span className="shrink-0 rounded-full border border-border-subtle bg-surface px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground uppercase">
                           {entry.type}

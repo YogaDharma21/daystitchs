@@ -18,7 +18,11 @@
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "isolatedModules": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@workspace/core": ["../../../packages/core/src/index.ts"],
+      "@workspace/core/*": ["../../../packages/core/src/*"]
+    }
   },
   "include": ["./**/*"],
   "exclude": ["./_generated"]
