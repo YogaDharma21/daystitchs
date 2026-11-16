@@ -214,7 +214,13 @@ export function getNowAndNext<TId = string>(
   for (const ev of events) {
     const startMin = timeToMinutes(ev.start!);
     const endMin = ev.end ? timeToMinutes(ev.end) : startMin + 30;
-    if (startMin <= nowMin && nowMin < endMin) {
+    // Same-day normal span (startMin <= endMin) or overnight span (startMin > endMin)
+    const isOngoing =
+      startMin <= endMin
+        ? startMin <= nowMin && nowMin < endMin
+        : nowMin >= startMin || nowMin < endMin;
+
+    if (isOngoing) {
       if (
         !activeEvent ||
         timeToMinutes(ev.start!) > timeToMinutes(activeEvent.start!)
