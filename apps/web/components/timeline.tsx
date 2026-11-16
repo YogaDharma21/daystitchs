@@ -32,6 +32,7 @@ import {
   monthEndDay,
   monthIndex,
   monthStartDay,
+  parseDay,
   sortEntries,
   sundaysOfMonth,
   titleForYm,
@@ -749,8 +750,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
 
   const onRollover = React.useCallback(
     (entry: DayEntry) => {
-      const parts = entry.date.split("-").map(Number)
-      const d = new Date(parts[0], parts[1] - 1, parts[2])
+      const d = parseDay(entry.date)
       d.setDate(d.getDate() + 1)
       const nextDate = isoDay(d)
       void updateEntry({
