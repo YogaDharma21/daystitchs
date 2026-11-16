@@ -10,6 +10,9 @@ export interface EntryDraftInput {
   title: string;
   date: string;
   type: string;
+  start?: string;
+  end?: string;
+  time?: string;
   loc?: string;
   detail?: string;
 }
@@ -24,6 +27,9 @@ export function entryDraftError(d: EntryDraftInput): string | null {
     return "Location is too long";
   if (d.detail !== undefined && d.detail.trim().length > ENTRY_LIMITS.detail)
     return "Detail is too long";
+  if (d.type === "event" && d.start && d.end) {
+    if (d.start >= d.end) return "End time must be after start time";
+  }
   return null;
 }
 

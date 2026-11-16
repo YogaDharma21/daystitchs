@@ -83,8 +83,8 @@ describe("SearchDialog component", () => {
       vi.advanceTimersByTime(200)
     })
 
-    expect(screen.getByText("Sprint Planning")).toBeInTheDocument()
-    expect(screen.getByText("Review PR")).toBeInTheDocument()
+    expect(screen.getByTestId("search-result-e1")).toHaveTextContent("Sprint Planning")
+    expect(screen.getByTestId("search-result-t1")).toHaveTextContent("Review PR")
   })
 
   it("selects an entry on click, closes dialog, and invokes callback", () => {

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useMutation, useQuery } from "convex/react"
 import {
+  ArrowRight,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -31,6 +32,7 @@ import {
   monthEndDay,
   monthIndex,
   monthStartDay,
+  parseDay,
   sortEntries,
   sundaysOfMonth,
   titleForYm,
@@ -38,7 +40,11 @@ import {
   type DayEntry,
   type EntryType,
 } from "@/lib/daystitch"
-import { listRangeQuery, toggleDoneMutation } from "@/lib/entries-api"
+import {
+  listRangeQuery,
+  toggleDoneMutation,
+  updateEntryMutation,
+} from "@/lib/entries-api"
 import type { Id } from "@/convex/_generated/dataModel"
 import EntrySheet from "@/components/entry-sheet"
 import SearchDialog from "@/components/search-dialog"
@@ -66,16 +72,9 @@ function MonthBanner({
       data-testid="month-banner"
       id={`m-${year}-${month}`}
       data-ym={`${year}-${month}`}
-      className={`relative flex min-h-[150px] scroll-mt-[70px] flex-col justify-center overflow-hidden px-[58px] pt-12 pb-11 ${
+      className={`relative flex min-h-[140px] scroll-mt-[70px] flex-col justify-center overflow-hidden border-y border-border bg-card px-[58px] pt-12 pb-11 text-card-foreground ${
         first ? "" : "mt-7"
       }`}
-      style={{
-        // Port of the index.html banner: radial highlight over a vertical
-        // gradient, with an oversized ghost month number at the right edge.
-        background:
-          "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
-        color: "var(--secondary-foreground)",
-      }}
     >
       <span
         aria-hidden="true"
@@ -185,16 +184,22 @@ function EventCard({ entry, onOpen }: { entry: DayEntry; onOpen: () => void }) {
 
 function TaskCard({
   entry,
+  todayKey,
   onToggle,
   onOpen,
+  onRollover,
 }: {
   entry: DayEntry
+  todayKey: string
   onToggle: () => void
   onOpen: () => void
+  onRollover?: () => void
 }) {
   const sub = fmtRange(entry)
   const meta = entryCardMeta([sub, entry.detail])
   const done = Boolean(entry.done)
+  const isRolloverCandidate = !done && entry.date <= todayKey && onRollover
+
   return (
     <div
       data-testid="task-card"
@@ -205,42 +210,63 @@ function TaskCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={onCardKeyDown(onOpen)}
-      className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-secondary/50 px-3.5 py-3"
+      className="group relative flex cursor-pointer items-start justify-between gap-2.5 rounded-xl bg-secondary/50 px-3.5 py-3"
     >
-      <button
-        data-testid="task-toggle"
-        data-check={entry._id}
-        type="button"
-        aria-label={`Toggle done for ${entry.title}`}
-        aria-pressed={done}
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle()
-        }}
-        className={`mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs ${
-          done
-            ? "border-transparent bg-primary text-primary-foreground"
-            : "text-transparent"
-        }`}
-      >
-        {done ? "✓" : ""}
-      </button>
-      <div className="min-w-0">
-        <div
-          data-testid="task-title"
-          className={`text-sm font-semibold ${done ? "line-through opacity-60" : ""}`}
+      <div className="flex items-start gap-2.5 min-w-0 flex-1">
+        <button
+          data-testid="task-toggle"
+          data-check={entry._id}
+          type="button"
+          aria-label={`Toggle done for ${entry.title}`}
+          aria-pressed={done}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle()
+          }}
+          className={`mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs ${
+            done
+              ? "border-transparent bg-primary text-primary-foreground"
+              : "text-transparent"
+          }`}
         >
-          {entry.title}
-        </div>
-        {meta ? (
+          {done ? "✓" : ""}
+        </button>
+        <div className="min-w-0">
           <div
-            data-testid="task-sub"
-            className="mt-0.5 text-xs text-muted-foreground"
+            data-testid="task-title"
+            className={`text-sm font-semibold ${done ? "line-through opacity-60" : ""}`}
           >
-            {meta}
+            {entry.title}
           </div>
-        ) : null}
+          {meta ? (
+            <div
+              data-testid="task-sub"
+              className="mt-0.5 text-xs text-muted-foreground"
+            >
+              {meta}
+            </div>
+          ) : null}
+        </div>
       </div>
+      {isRolloverCandidate ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              data-testid="task-rollover"
+              aria-label="Roll over to next day"
+              onClick={(e) => {
+                e.stopPropagation()
+                onRollover()
+              }}
+              className="mt-0.5 flex size-6 flex-none items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-70 transition-opacity hover:opacity-100 hover:text-foreground"
+            >
+              <ArrowRight className="size-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Roll over to tomorrow</TooltipContent>
+        </Tooltip>
+      ) : null}
     </div>
   )
 }
@@ -252,6 +278,7 @@ function DaySection({
   onToggleDone,
   onAdd,
   onOpen,
+  onRollover,
 }: {
   day: Date
   todayKey: string
@@ -259,6 +286,7 @@ function DaySection({
   onToggleDone: (id: Id<"entries">) => void
   onAdd: (date: string, type: EntryType) => void
   onOpen: (entry: DayEntry) => void
+  onRollover?: (entry: DayEntry) => void
 }) {
   const key = isoDay(day)
   const dow = day.toLocaleDateString("en-US", { weekday: "short" })
@@ -346,8 +374,10 @@ function DaySection({
               <TaskCard
                 key={e._id}
                 entry={e}
+                todayKey={todayKey}
                 onToggle={() => onToggleDone(e._id)}
                 onOpen={() => onOpen(e)}
+                onRollover={onRollover ? () => onRollover(e) : undefined}
               />
             ) : (
               <EventCard key={e._id} entry={e} onOpen={() => onOpen(e)} />
@@ -513,6 +543,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
     end: monthEndDay(win.end),
   })
   const toggleDone = useMutation(toggleDoneMutation)
+  const updateEntry = useMutation(updateEntryMutation)
   const { pendingEntry, stageDelete, undoDelete, isPending } =
     useDelayedDeletion()
 
@@ -715,6 +746,24 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
       void toggleDone({ id })
     },
     [toggleDone]
+  )
+
+  const onRollover = React.useCallback(
+    (entry: DayEntry) => {
+      const d = parseDay(entry.date)
+      d.setDate(d.getDate() + 1)
+      const nextDate = isoDay(d)
+      void updateEntry({
+        id: entry._id,
+        date: nextDate,
+        title: entry.title,
+        type: "task",
+        time: entry.time,
+        detail: entry.detail,
+        done: false,
+      })
+    },
+    [updateEntry]
   )
 
   const openNew = React.useCallback(
@@ -1018,6 +1067,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                           onToggleDone={onToggleDone}
                           onAdd={openNew}
                           onOpen={openEdit}
+                          onRollover={onRollover}
                         />
                       ))}
                     </React.Fragment>
@@ -1059,6 +1109,7 @@ function TimelineConnected({ accountSlot }: { accountSlot?: React.ReactNode }) {
                         onToggleDone={onToggleDone}
                         onAdd={openNew}
                         onOpen={openEdit}
+                        onRollover={onRollover}
                       />
                     ))}
                   </React.Fragment>

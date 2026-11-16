@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   type LayoutChangeEvent,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery, useMutation } from "convex/react";
 import {
   daysOfWeek,
@@ -29,6 +30,7 @@ import { EntrySheet } from "../entry-sheet";
 
 // ponytail: single-month window with scroll; upgrade to multi-month windowed FlatList when infinite scroll is needed.
 export function TimelineScreen() {
+  const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<React.ElementRef<typeof ScrollView>>(null);
   const today = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => isoDay(today), [today]);
@@ -255,7 +257,8 @@ export function TimelineScreen() {
         onPress={() => handleOpenCreate(todayKey)}
         accessibilityRole="button"
         accessibilityLabel="Create entry for today"
-        className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg active:bg-blue-700"
+        style={{ bottom: Math.max(24, insets.bottom + 16) }}
+        className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg active:bg-blue-700"
       >
         <Text className="text-2xl font-bold text-white">+</Text>
       </Pressable>

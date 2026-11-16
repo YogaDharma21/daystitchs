@@ -23,6 +23,7 @@ export function TaskCard({ entry, onToggle, onPress }: TaskCardProps) {
       <Pressable
         testID="task-checkbox"
         onPress={onToggle}
+        hitSlop={12}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: isDone }}
         accessibilityLabel={`Mark ${entry.title} as ${isDone ? "incomplete" : "complete"}`}

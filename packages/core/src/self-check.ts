@@ -207,9 +207,53 @@ testEntries.find((e) => e._id === "t2")!.done = true;
 const res4 = getNowAndNext(testEntries, testDate);
 assert.equal(res4.next, null, "Next task should be null when all tasks done");
 
-// Inactive time window (e.g. 15:30)
-const inactiveDate = new Date(2026, 9, 29, 15, 30);
-const res5 = getNowAndNext(testEntries, inactiveDate);
-assert.equal(res5.now, null, "Active event should be null when outside event times");
+// Overnight cross-midnight event test
+const midnightEntries: DayEntry[] = [
+  {
+    _id: "e_midnight",
+    userId: "u1",
+    date: "2026-10-29",
+    title: "Late Night Coding",
+    type: "event",
+    start: "23:00",
+    end: "02:00",
+  },
+];
+const midnightNow = new Date(2026, 9, 29, 23, 30);
+const midnightRes = getNowAndNext(midnightEntries, midnightNow);
+assert.equal(
+  midnightRes.now?._id,
+  "e_midnight",
+  "Overnight event should be active at 23:30",
+);
+const earlyMorningNow = new Date(2026, 9, 29, 1, 15);
+const earlyMorningRes = getNowAndNext(midnightEntries, earlyMorningNow);
+assert.equal(
+  earlyMorningRes.now?._id,
+  "e_midnight",
+  "Overnight event should be active at 01:15",
+);
+
+// Start/end chronological time validation test (ADJ-3)
+const validEvent = {
+  title: "Valid Event",
+  date: "2026-10-29",
+  type: "event",
+  start: "10:00",
+  end: "11:00",
+};
+assert.equal(entryDraftError(validEvent), null);
+const invertedEvent = {
+  title: "Inverted Event",
+  date: "2026-10-29",
+  type: "event",
+  start: "15:00",
+  end: "14:00",
+};
+assert.equal(
+  entryDraftError(invertedEvent),
+  "End time must be after start time",
+  "Inverted start/end times should be rejected",
+);
 
 console.log("All packages/core self-check assertions passed.");
