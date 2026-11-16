@@ -121,17 +121,17 @@ export default function EntrySheet({
       <SheetContent
         side="bottom"
         data-testid="entry-sheet"
-        className="mx-auto w-full max-w-[1000px] rounded-t-2xl px-6 pt-3 pb-8"
+        className="mx-auto w-full max-w-[1000px] rounded-t-3xl border-t border-border bg-popover px-6 pt-3 pb-8 shadow-[0_28px_56px_-40px_rgba(0,0,0,0.9)]"
       >
         <div
           aria-hidden="true"
-          className="bg-border mx-auto mb-2 h-1 w-10 rounded-full"
+          className="mx-auto mb-3 h-1 w-10 rounded-full bg-border-subtle"
         />
         <SheetHeader className="p-0 text-left">
-          <SheetTitle data-testid="entry-sheet-title">
+          <SheetTitle data-testid="entry-sheet-title" className="text-base font-semibold text-foreground">
             {isEdit ? `Edit ${TYPE_LABEL[type].toLowerCase()}` : `New ${TYPE_LABEL[type].toLowerCase()}`}
           </SheetTitle>
-          <SheetDescription data-testid="entry-date-summary">
+          <SheetDescription data-testid="entry-date-summary" className="text-xs text-muted-foreground tabular-nums">
             {summary}
           </SheetDescription>
         </SheetHeader>
@@ -147,6 +147,7 @@ export default function EntrySheet({
                 aria-pressed={type === t}
                 data-testid={`entry-type-${t}`}
                 onClick={() => setType(t)}
+                className="rounded-full px-4 text-xs font-medium"
               >
                 {label}
               </Button>
@@ -156,7 +157,7 @@ export default function EntrySheet({
 
         <label
           htmlFor="entry-title"
-          className="text-muted-foreground mt-3 block text-xs font-semibold"
+          className="mt-3 block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
         >
           Title
         </label>
@@ -172,7 +173,7 @@ export default function EntrySheet({
 
         <label
           htmlFor="entry-date"
-          className="text-muted-foreground mt-3 block text-xs font-semibold"
+          className="mt-3 block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
         >
           Date
         </label>
@@ -190,7 +191,7 @@ export default function EntrySheet({
             <div>
               <label
                 htmlFor="entry-start"
-                className="text-muted-foreground block text-xs font-semibold"
+                className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
               >
                 Start
               </label>
@@ -205,7 +206,7 @@ export default function EntrySheet({
             <div>
               <label
                 htmlFor="entry-end"
-                className="text-muted-foreground block text-xs font-semibold"
+                className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
               >
                 End
               </label>
@@ -222,7 +223,7 @@ export default function EntrySheet({
           <div className="mt-3">
             <label
               htmlFor="entry-time"
-              className="text-muted-foreground block text-xs font-semibold"
+              className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
             >
               Time (optional)
             </label>
@@ -240,7 +241,7 @@ export default function EntrySheet({
           <div className="mt-3">
             <label
               htmlFor="entry-loc"
-              className="text-muted-foreground block text-xs font-semibold"
+              className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
             >
               Location
             </label>
@@ -259,7 +260,7 @@ export default function EntrySheet({
         <div className="mt-3">
           <label
             htmlFor="entry-detail"
-            className="text-muted-foreground block text-xs font-semibold"
+            className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
           >
             Detail
           </label>

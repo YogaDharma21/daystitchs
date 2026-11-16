@@ -17,24 +17,24 @@ export function MonthBanner({ year, month, count }: MonthBannerProps) {
   return (
     <View
       testID="month-banner"
-      className="bg-neutral-900 border-b border-neutral-800 px-6 py-6 flex-row items-center justify-between"
+      className="bg-card border-b border-border px-6 py-6 flex-row items-center justify-between"
     >
       <View>
         <Text
           testID="month-title"
-          className="text-2xl font-extrabold text-white tracking-tight"
+          className="text-2xl font-bold text-foreground tracking-tight"
         >
           {title}
         </Text>
-        <Text className="text-xs text-neutral-400 mt-0.5">
+        <Text className="text-xs text-muted-foreground mt-0.5">
           {year}
         </Text>
       </View>
       <View
         testID="month-count"
-        className="rounded-full bg-neutral-800 px-3 py-1 border border-neutral-700"
+        className="rounded-full bg-surface px-2.5 py-0.5 border border-border"
       >
-        <Text className="text-xs font-semibold text-neutral-300">
+        <Text className="text-xs font-medium text-muted-foreground">
           {countLabel}
         </Text>
       </View>

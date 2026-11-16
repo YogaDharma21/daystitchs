@@ -107,10 +107,7 @@ export default function LandingPage({
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       >
-        <div className="absolute -top-40 left-1/2 size-[650px] -translate-x-1/2 rounded-full bg-primary/10 blur-[130px]" />
-        <div className="absolute top-[40%] -right-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute top-[60%] -left-40 size-[500px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] bg-[size:4rem_4rem]" />
       </div>
 
       {/* Missing configuration notice banner if keys are not set */}
@@ -177,15 +174,15 @@ export default function LandingPage({
       )}
 
       {/* Header Navigation */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
             <img
               src="/icon-192.png"
               alt="DayStitch"
-              className="size-8 rounded-lg shadow-sm"
+              className="size-8 rounded-lg shadow-xs"
             />
-            <span className="text-lg font-bold tracking-tight">DayStitch</span>
+            <span className="text-lg font-semibold tracking-tight text-foreground">DayStitch</span>
           </div>
 
           <div className="flex items-center gap-3">{headerAction}</div>
@@ -196,9 +193,9 @@ export default function LandingPage({
       <section className="relative px-6 pt-20 pb-14 sm:pt-28 sm:pb-20">
         <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
           {/* Hero title */}
-          <h1 className="text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl leading-[1.1] font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Stitch your days together,{" "}
-            <span className="mt-1 block bg-gradient-to-r from-foreground via-foreground/90 to-muted-foreground bg-clip-text text-transparent sm:mt-2">
+            <span className="mt-1 block text-muted-foreground sm:mt-2">
               without the clutter.
             </span>
           </h1>
@@ -220,19 +217,19 @@ export default function LandingPage({
         <div className="mx-auto max-w-4xl">
           <div className="relative overflow-hidden rounded-[24px] border border-border bg-card shadow-[0_28px_56px_-40px_rgba(0,0,0,0.9)]">
             {/* Timeline Sticky Header */}
-            <div className="flex items-center justify-between border-b border-border bg-background/95 px-6 py-3">
-              <div className="flex items-center gap-1.5 text-base font-semibold tracking-tight sm:text-lg">
+            <div className="flex items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-6 py-3">
+              <div className="flex items-center gap-1.5 text-base font-semibold tracking-tight text-foreground sm:text-lg">
                 <span>October 2026</span>
                 <ChevronDown className="size-4 text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <div className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground">
                   <Search className="size-4" />
                 </div>
-                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <div className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground">
                   <CalendarDays className="size-4" />
                 </div>
-                <div className="flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+                <div className="flex size-8 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground">
                   <User className="size-4" />
                 </div>
               </div>
@@ -241,39 +238,28 @@ export default function LandingPage({
             {/* Inner Timeline Content */}
             <div>
               {/* Month Banner */}
-              <div
-                className="relative flex min-h-[150px] flex-col justify-center overflow-hidden px-6 pt-12 pb-11 sm:px-[58px]"
-                style={{
-                  background:
-                    "radial-gradient(105% 140% at 88% 0%, color-mix(in oklch, var(--primary) 9%, transparent), transparent 58%), linear-gradient(180deg, color-mix(in oklch, var(--secondary) 28%, var(--background)), color-mix(in oklch, var(--secondary) 52%, var(--background)))",
-                  color: "var(--secondary-foreground)",
-                }}
-              >
+              <div className="relative flex min-h-[140px] flex-col justify-center overflow-hidden border-b border-border bg-card px-6 sm:px-14 pt-10 pb-9 text-card-foreground">
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 right-5 -translate-y-1/2 text-[128px] leading-none font-extrabold tabular-nums select-none"
-                  style={{
-                    color:
-                      "color-mix(in oklch, var(--foreground) 8%, transparent)",
-                  }}
+                  className="pointer-events-none absolute top-1/2 right-6 -translate-y-1/2 text-[110px] leading-none font-bold tabular-nums text-foreground/[0.04] select-none"
                 >
                   10
                 </span>
-                <p className="relative m-0 mb-1.5 text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                <p className="relative m-0 mb-1 text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase tabular-nums">
                   2026 · 4 entries
                 </p>
-                <h2 className="relative m-0 text-[34px] font-extrabold tracking-[-0.03em]">
+                <h2 className="relative m-0 text-3xl font-semibold tracking-[-0.03em] text-foreground">
                   October
                 </h2>
               </div>
 
               {/* Week Row */}
-              <div className="flex w-full items-center gap-3 px-6 pt-8 pb-1 text-left text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              <div className="flex w-full items-center gap-3 px-6 pt-7 pb-1 text-left text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                 <span className="flex-none">Oct 18 – 24</span>
-                <span className="flex-none rounded-full border border-border bg-secondary px-2.5 py-0.5 tracking-normal normal-case text-foreground">
+                <span className="flex-none rounded-full border border-border bg-surface px-2.5 py-0.5 tracking-normal normal-case text-muted-foreground tabular-nums text-[11px]">
                   4 entries
                 </span>
-                <span aria-hidden="true" className="h-px flex-1 bg-border" />
+                <span aria-hidden="true" className="h-px flex-1 bg-border-subtle" />
                 <ChevronDown className="size-3.5 flex-none text-muted-foreground" />
               </div>
 
@@ -282,15 +268,15 @@ export default function LandingPage({
                 {/* Connector line down the day column */}
                 <span
                   aria-hidden="true"
-                  className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-foreground/14"
+                  className="pointer-events-none absolute top-0 bottom-0 left-[45px] w-px bg-border-subtle"
                 />
 
                 {/* Day Marker */}
                 <div className="relative z-[1] flex flex-col items-center gap-0.5 pt-0.5">
-                  <span className="bg-card text-[10px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+                  <span className="bg-card text-[10px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
                     Wed
                   </span>
-                  <span className="flex size-9 items-center justify-center rounded-full text-lg font-bold tabular-nums bg-primary text-primary-foreground">
+                  <span className="flex size-9 items-center justify-center rounded-full text-base font-semibold tabular-nums bg-primary text-primary-foreground shadow-xs">
                     22
                   </span>
                   <div className="mt-2 flex size-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground">
@@ -304,12 +290,12 @@ export default function LandingPage({
                     item.type === "event" ? (
                       <div
                         key={item.id}
-                        className="cursor-pointer rounded-xl bg-secondary/50 px-3.5 py-3 transition-colors hover:bg-secondary/70"
+                        className="cursor-pointer rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface"
                       >
-                        <div className="text-sm font-semibold">
+                        <div className="text-[13px] font-medium leading-snug text-foreground">
                           {item.title}
                         </div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">
+                        <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">
                           {item.time} · {item.loc}
                         </div>
                       </div>
@@ -317,30 +303,35 @@ export default function LandingPage({
                       <div
                         key={item.id}
                         onClick={() => toggleTask(item.id)}
-                        className="flex cursor-pointer items-start gap-2.5 rounded-xl bg-secondary/50 px-3.5 py-3 transition-colors hover:bg-secondary/70"
+                        className={cn(
+                          "group relative flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card p-3.5 transition-colors hover:bg-surface select-none",
+                          item.done && "opacity-60"
+                        )}
                       >
                         <button
                           type="button"
                           aria-label={`Toggle ${item.title}`}
                           className={cn(
-                            "mt-0.5 flex size-5 flex-none items-center justify-center rounded-full border text-xs transition-all",
+                            "mt-0.5 flex size-4.5 flex-none items-center justify-center rounded-md border text-xs transition-colors",
                             item.done
-                              ? "border-transparent bg-primary text-primary-foreground"
-                              : "border-border text-transparent hover:border-primary/60"
+                              ? "border-mineral-emerald bg-mineral-emerald-tint text-mineral-emerald font-semibold"
+                              : "border-border bg-surface-inset text-transparent hover:border-mineral-emerald/60"
                           )}
                         >
                           {item.done ? "✓" : ""}
                         </button>
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div
                             className={cn(
-                              "text-sm font-semibold",
-                              item.done && "line-through opacity-60"
+                              "text-[13px] font-medium leading-snug",
+                              item.done
+                                ? "line-through text-muted-foreground"
+                                : "text-foreground"
                             )}
                           >
                             {item.title}
                           </div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
+                          <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">
                             {item.time} · {item.loc}
                           </div>
                         </div>

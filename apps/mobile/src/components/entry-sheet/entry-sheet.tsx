@@ -128,7 +128,7 @@ function EntrySheetContent({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 justify-end bg-black/60"
+      className="flex-1 justify-end bg-black/70"
     >
       <Pressable
         testID="entry-sheet-backdrop"
@@ -137,12 +137,12 @@ function EntrySheetContent({
       />
       <View
         testID="entry-sheet"
-        className="max-h-[90%] rounded-t-3xl border-t border-neutral-800 bg-neutral-900 px-5 pt-3 pb-8"
+        className="max-h-[90%] rounded-t-3xl border-t border-border bg-card px-5 pt-3 pb-8"
       >
-        <View className="mb-3 h-1 w-10 self-center rounded-full bg-neutral-700" />
+        <View className="mb-3 h-1 w-10 self-center rounded-full bg-border-subtle" />
 
-        <View className="flex-row items-center justify-between border-b border-neutral-800 pb-3">
-          <Text className="text-lg font-bold text-white">
+        <View className="flex-row items-center justify-between border-b border-border pb-3">
+          <Text className="text-base font-semibold text-foreground">
             {isEdit
               ? `Edit ${draft.type === "event" ? "Event" : "Task"}`
               : `New ${draft.type === "event" ? "Event" : "Task"}`}
@@ -152,9 +152,9 @@ function EntrySheetContent({
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel="Cancel"
-            className="rounded-full bg-neutral-800 px-3 py-1 active:bg-neutral-700"
+            className="rounded-full border border-border bg-surface px-3 py-1 active:bg-surface-inset"
           >
-            <Text className="text-xs font-semibold text-neutral-300">
+            <Text className="text-xs font-medium text-muted-foreground">
               Cancel
             </Text>
           </Pressable>
@@ -170,15 +170,15 @@ function EntrySheetContent({
               onPress={() => updateDraft({ type: "task" })}
               accessibilityRole="button"
               accessibilityState={{ selected: draft.type === "task" }}
-              className={`flex-1 items-center justify-center rounded-lg border py-2 ${
+              className={`flex-1 items-center justify-center rounded-xl border py-2.5 ${
                 draft.type === "task"
-                  ? "border-blue-500 bg-blue-600"
-                  : "border-neutral-700 bg-neutral-800"
+                  ? "border-transparent bg-foreground"
+                  : "border-border bg-surface"
               }`}
             >
               <Text
-                className={`text-sm font-semibold ${
-                  draft.type === "task" ? "text-white" : "text-neutral-400"
+                className={`text-sm font-medium ${
+                  draft.type === "task" ? "text-background font-semibold" : "text-muted-foreground"
                 }`}
               >
                 Task
@@ -189,15 +189,15 @@ function EntrySheetContent({
               onPress={() => updateDraft({ type: "event" })}
               accessibilityRole="button"
               accessibilityState={{ selected: draft.type === "event" }}
-              className={`flex-1 items-center justify-center rounded-lg border py-2 ${
+              className={`flex-1 items-center justify-center rounded-xl border py-2.5 ${
                 draft.type === "event"
-                  ? "border-blue-500 bg-blue-600"
-                  : "border-neutral-700 bg-neutral-800"
+                  ? "border-transparent bg-foreground"
+                  : "border-border bg-surface"
               }`}
             >
               <Text
-                className={`text-sm font-semibold ${
-                  draft.type === "event" ? "text-white" : "text-neutral-400"
+                className={`text-sm font-medium ${
+                  draft.type === "event" ? "text-background font-semibold" : "text-muted-foreground"
                 }`}
               >
                 Event
@@ -206,7 +206,7 @@ function EntrySheetContent({
           </View>
 
           <View className="mt-3">
-            <Text className="mb-1 text-xs font-semibold text-neutral-400">
+            <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
               Title
             </Text>
             <TextInput
@@ -214,14 +214,14 @@ function EntrySheetContent({
               value={draft.title}
               onChangeText={(title) => updateDraft({ title })}
               placeholder="e.g. Project update"
-              placeholderTextColor="#737373"
+              placeholderTextColor="#5f6065"
               maxLength={80}
-              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+              className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
             />
           </View>
 
           <View className="mt-3">
-            <Text className="mb-1 text-xs font-semibold text-neutral-400">
+            <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
               Date
             </Text>
             <TextInput
@@ -229,8 +229,8 @@ function EntrySheetContent({
               value={draft.date}
               onChangeText={(dateVal) => updateDraft({ date: dateVal })}
               placeholder="YYYY-MM-DD"
-              placeholderTextColor="#737373"
-              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+              placeholderTextColor="#5f6065"
+              className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
             />
           </View>
 
@@ -238,7 +238,7 @@ function EntrySheetContent({
             <>
               <View className="mt-3 flex-row gap-2">
                 <View className="flex-1">
-                  <Text className="mb-1 text-xs font-semibold text-neutral-400">
+                  <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                     Start
                   </Text>
                   <TextInput
@@ -246,12 +246,12 @@ function EntrySheetContent({
                     value={draft.start}
                     onChangeText={(start) => updateDraft({ start })}
                     placeholder="10:00"
-                    placeholderTextColor="#737373"
-                    className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+                    placeholderTextColor="#5f6065"
+                    className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
                   />
                 </View>
                 <View className="flex-1">
-                  <Text className="mb-1 text-xs font-semibold text-neutral-400">
+                  <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                     End
                   </Text>
                   <TextInput
@@ -259,14 +259,14 @@ function EntrySheetContent({
                     value={draft.end}
                     onChangeText={(end) => updateDraft({ end })}
                     placeholder="10:30"
-                    placeholderTextColor="#737373"
-                    className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+                    placeholderTextColor="#5f6065"
+                    className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
                   />
                 </View>
               </View>
 
               <View className="mt-3">
-                <Text className="mb-1 text-xs font-semibold text-neutral-400">
+                <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                   Location
                 </Text>
                 <TextInput
@@ -274,15 +274,15 @@ function EntrySheetContent({
                   value={draft.loc}
                   onChangeText={(loc) => updateDraft({ loc })}
                   placeholder="e.g. Central"
-                  placeholderTextColor="#737373"
+                  placeholderTextColor="#5f6065"
                   maxLength={60}
-                  className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+                  className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
                 />
               </View>
             </>
           ) : (
             <View className="mt-3">
-              <Text className="mb-1 text-xs font-semibold text-neutral-400">
+              <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
                 Time (optional)
               </Text>
               <TextInput
@@ -290,14 +290,14 @@ function EntrySheetContent({
                 value={draft.time}
                 onChangeText={(time) => updateDraft({ time })}
                 placeholder="e.g. 14:00"
-                placeholderTextColor="#737373"
-                className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+                placeholderTextColor="#5f6065"
+                className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
               />
             </View>
           )}
 
           <View className="mt-3">
-            <Text className="mb-1 text-xs font-semibold text-neutral-400">
+            <Text className="mb-1 text-[11px] font-semibold tracking-wider uppercase text-muted-foreground">
               Detail
             </Text>
             <TextInput
@@ -309,9 +309,9 @@ function EntrySheetContent({
                   ? "e.g. Agenda, links, notes"
                   : "e.g. Bring slides"
               }
-              placeholderTextColor="#737373"
+              placeholderTextColor="#5f6065"
               maxLength={120}
-              className="rounded-lg border border-neutral-700 bg-neutral-800 px-3 py-2 text-base text-white"
+              className="rounded-xl border border-border bg-surface-inset px-3 py-2 text-base text-foreground"
             />
           </View>
 
@@ -325,9 +325,9 @@ function EntrySheetContent({
                     disabled={saving}
                     accessibilityRole="button"
                     accessibilityLabel="Cancel delete"
-                    className="flex-1 items-center justify-center rounded-lg bg-neutral-800 py-3 active:bg-neutral-700"
+                    className="flex-1 items-center justify-center rounded-xl border border-border bg-surface py-3 active:bg-surface-inset"
                   >
-                    <Text className="text-sm font-semibold text-neutral-300">
+                    <Text className="text-sm font-semibold text-muted-foreground">
                       Cancel
                     </Text>
                   </Pressable>
@@ -337,9 +337,9 @@ function EntrySheetContent({
                     disabled={saving}
                     accessibilityRole="button"
                     accessibilityLabel="Confirm delete entry"
-                    className="flex-1 items-center justify-center rounded-lg bg-red-600 py-3 active:bg-red-700"
+                    className="flex-1 items-center justify-center rounded-xl bg-mineral-crimson py-3 active:opacity-90"
                   >
-                    <Text className="text-sm font-semibold text-white">
+                    <Text className="text-sm font-semibold text-background">
                       Delete
                     </Text>
                   </Pressable>
@@ -351,9 +351,9 @@ function EntrySheetContent({
                   disabled={saving}
                   accessibilityRole="button"
                   accessibilityLabel="Delete entry"
-                  className="flex-1 items-center justify-center rounded-lg bg-red-600/20 border border-red-500/40 py-3 active:bg-red-600/30"
+                  className="flex-1 items-center justify-center rounded-xl border border-mineral-crimson/30 bg-mineral-crimson-tint py-3 active:opacity-90"
                 >
-                  <Text className="text-base font-semibold text-red-400">
+                  <Text className="text-sm font-semibold text-mineral-crimson">
                     Delete
                   </Text>
                 </Pressable>
@@ -365,13 +365,13 @@ function EntrySheetContent({
               disabled={Boolean(error) || saving}
               accessibilityRole="button"
               accessibilityLabel="Save entry"
-              className={`flex-1 items-center justify-center rounded-lg py-3 ${
+              className={`flex-1 items-center justify-center rounded-xl py-3 ${
                 Boolean(error) || saving
-                  ? "bg-blue-600/50"
-                  : "bg-blue-600 active:bg-blue-700"
+                  ? "bg-foreground/40"
+                  : "bg-foreground active:opacity-90 shadow-xs"
               }`}
             >
-              <Text className="text-base font-semibold text-white">Save</Text>
+              <Text className="text-sm font-semibold text-background">Save</Text>
             </Pressable>
           </View>
         </ScrollView>

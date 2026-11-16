@@ -28,7 +28,7 @@ function ShellLoading() {
       {/* Same sticky header row as the timeline, so nothing moves when the
           real header takes over. Right-hand circles get gray stand-ins:
           Search, Today, and Clerk's UserButton. */}
-      <div className="flex items-center justify-between border-b px-6 py-3">
+      <div className="flex items-center justify-between border-b border-border px-6 py-3">
         <SkeletonShape className="h-7 w-36 rounded-md" />
         <div className="flex items-center gap-2">
           <SkeletonShape className="size-8 rounded-full" />

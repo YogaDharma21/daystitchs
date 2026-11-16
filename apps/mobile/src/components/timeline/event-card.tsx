@@ -16,19 +16,19 @@ export function EventCard({ entry, onPress }: EventCardProps) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Event: ${entry.title}`}
-      className="rounded-xl border border-neutral-800 bg-neutral-900/70 p-3.5 mb-2.5 active:bg-neutral-800/80"
+      className="rounded-xl border border-border bg-card p-3.5 mb-2.5 active:bg-surface"
     >
       <View className="flex-row items-baseline justify-between gap-2">
         <Text
           testID="event-title"
-          className="text-base font-semibold text-white flex-1"
+          className="text-[13px] font-medium leading-snug text-foreground flex-1"
         >
           {entry.title}
         </Text>
         {timeRange ? (
           <Text
             testID="event-time"
-            className="text-xs font-medium text-neutral-300"
+            className="text-[11px] font-medium text-muted-foreground"
           >
             {timeRange}
           </Text>
@@ -38,7 +38,7 @@ export function EventCard({ entry, onPress }: EventCardProps) {
       {entry.loc ? (
         <Text
           testID="event-location"
-          className="mt-1 text-xs text-neutral-400 font-medium"
+          className="mt-1 text-[11px] text-muted-foreground font-normal"
         >
           📍 {entry.loc}
         </Text>
@@ -47,7 +47,7 @@ export function EventCard({ entry, onPress }: EventCardProps) {
       {entry.detail ? (
         <Text
           testID="event-detail"
-          className="mt-1 text-xs text-neutral-400 leading-relaxed"
+          className="mt-1 text-xs text-muted-foreground leading-relaxed"
         >
           {entry.detail}
         </Text>
